@@ -21,4 +21,7 @@ public class Test : BaseEditor<Test>
 
     [ELabel]
     public string label2 = "≤‚ ‘Label2";
+
+    [EInput, ESSize(50, 40,ESPercent.Width)]
+    public string strInput;
 }
