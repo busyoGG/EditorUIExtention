@@ -1,7 +1,9 @@
 
 
 using System;
-
+/// <summary>
+/// 垂直布局 参数isStart：true代表Start，false代表End
+/// </summary>
 public class EL_Vertical : Attribute
 {
     private bool _isStart;

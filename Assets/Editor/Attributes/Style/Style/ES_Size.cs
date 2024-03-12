@@ -11,6 +11,9 @@ public enum ESPercent
     Height
 }
 
+/// <summary>
+/// UI大小 参数x：宽度；参数y：高度；参数percent：是否比例制
+/// </summary>
 public class ES_Size : Attribute
 {
     /// <summary>

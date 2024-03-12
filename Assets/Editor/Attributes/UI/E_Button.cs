@@ -1,6 +1,9 @@
 using System;
 using System.Runtime.CompilerServices;
 
+/// <summary>
+/// 按钮 参数name：按钮名称
+/// </summary>
 [AttributeUsage(AttributeTargets.Method)]
 public class E_Button : EBase
 {
