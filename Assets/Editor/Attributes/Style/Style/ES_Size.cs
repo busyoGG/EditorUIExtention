@@ -11,7 +11,7 @@ public enum ESPercent
     Height
 }
 
-public class ESSize : Attribute
+public class ES_Size : Attribute
 {
     /// <summary>
     /// ด๓ะก
@@ -22,7 +22,7 @@ public class ESSize : Attribute
     /// </summary>
     private ESPercent _isPercent;
 
-    public ESSize(float x, float y, ESPercent percent = ESPercent.None)
+    public ES_Size(float x, float y, ESPercent percent = ESPercent.None)
     {
         _size.Set(x, y);
         _isPercent = percent;

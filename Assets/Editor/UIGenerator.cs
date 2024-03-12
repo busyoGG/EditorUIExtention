@@ -1,8 +1,5 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Reflection;
-using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 
@@ -35,11 +32,12 @@ public class UIGenerator
     /// </summary>
     /// <param name="labelName">标签名</param>
     /// <returns></returns>
-    public static Action<GUIStyle, GUILayoutOption[]> GenerateLabel(string labelName)
+    public static Action<GUIStyle, GUILayoutOption[]> GenerateLabel(Func<string> labelName)
     {
         Action<GUIStyle, GUILayoutOption[]> label = (GUIStyle style, GUILayoutOption[] options) =>
         {
-            GUILayout.Label(labelName, style, options);
+
+            GUILayout.Label(labelName(), style, options);
         };
 
         return label;
@@ -50,13 +48,64 @@ public class UIGenerator
     /// </summary>
     /// <param name="res">输入参数字段</param>
     /// <returns></returns>
-    public static Action<GUIStyle, GUILayoutOption[]> GenerateInput(string res)
+    public static Action<GUIStyle, GUILayoutOption[]> GenerateInput(string name, string res, EditorWindow obj, int width, bool isPercent = true, bool doubleLine = false)
     {
         Action<GUIStyle, GUILayoutOption[]> input = (GUIStyle style, GUILayoutOption[] options) =>
         {
-            res = GUILayout.TextField(res, style, options);
+            if (doubleLine)
+            {
+                if (isPercent)
+                {
+                    EditorGUILayout.BeginVertical();
+                    GUILayout.Label(name, GUILayout.Width(obj.position.width * width / 100));
+                    res = EditorGUILayout.TextField(res, style, options);
+                    EditorGUILayout.EndVertical();
+                }
+                else
+                {
+                    EditorGUILayout.BeginVertical();
+                    GUILayout.Label(name, GUILayout.Width(width));
+                    res = EditorGUILayout.TextField(res, style, options);
+                    EditorGUILayout.EndVertical();
+                }
+            }
+            else
+            {
+                if (isPercent)
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    GUILayout.Label(name, GUILayout.Width(obj.position.width * width / 100));
+                    res = EditorGUILayout.TextField(res, style, options);
+                    EditorGUILayout.EndHorizontal();
+                }
+                else
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    GUILayout.Label(name, GUILayout.Width(width));
+                    res = EditorGUILayout.TextField(res, style, options);
+                    EditorGUILayout.EndHorizontal();
+                }
+            }
         };
 
         return input;
+    }
+
+    /// <summary>
+    /// 绘制texture
+    /// </summary>
+    /// <param name="texture"></param>
+    /// <returns></returns>
+    public static Action<GUIStyle, GUILayoutOption[]> GenerateObject<T>(string name, T obj) where T : UnityEngine.Object
+    {
+        Debug.Log("创建Object");
+        Action<GUIStyle, GUILayoutOption[]> action = (GUIStyle style, GUILayoutOption[] options) =>
+        {
+            EditorGUILayout.BeginVertical();
+            GUILayout.Label(name);
+            obj = EditorGUILayout.ObjectField(obj, typeof(T), true, options) as T;
+            EditorGUILayout.EndVertical();
+        };
+        return action;
     }
 }

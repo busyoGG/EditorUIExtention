@@ -4,24 +4,29 @@ using UnityEditor;
 [EName("²âÊÔ´°¿Ú")]
 public class Test : BaseEditor<Test>
 {
-    [MenuItem("Test/test")]
+    [MenuItem("Test/Test1")]
     public static void ShowWindow()
     {
         GetWindow<Test>().Show();
+        //GetWindow<Test>().Close();
     }
-    [ELabel]
+
+    [E_Label,EL_Horizontal(true)]
     public string label = "²âÊÔLabel";
 
-    [EButton("²âÊÔ°´Å¥")]
+    [E_Input(50,false), ES_Size(40, 40,ESPercent.Width)]
+    public string strInput;
+
+    [E_Button("²âÊÔ°´Å¥"), ES_Size(50, 40, ESPercent.Width), EL_Horizontal(false)]
     public void ShowHello()
     {
-        Debug.Log("µã»÷²âÊÔ°´Å¥");
+        //Debug.Log("µã»÷²âÊÔ°´Å¥");
+        label = "ÐÞ¸Älabel";
     }
 
-
-    [ELabel]
+    [E_Label]
     public string label2 = "²âÊÔLabel2";
 
-    [EInput, ESSize(50, 40,ESPercent.Width)]
-    public string strInput;
+    [E_Texture,ES_Size(70, 70)]
+    public Texture texture;
 }
