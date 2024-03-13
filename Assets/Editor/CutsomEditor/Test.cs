@@ -34,6 +34,6 @@ public class Test : BaseEditor<Test>
     [E_Texture, ES_Size(70, 70), EL_List(EL_ListType.Flex, true, 100, 200, ESPercent.Width)]
     public List<Texture> tex = new List<Texture>() { null, null, null, null, null, null };
 
-    //[E_Label, ES_Size(70, 70), EL_List(EL_ListType.Flex)]
-    //public List<string> tex = new List<string>() { "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa" };
+    [E_Label, ES_Size(70, 70), EL_List(EL_ListType.Flex)]
+    public List<string> labels = new List<string>() { "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa" };
 }

@@ -298,6 +298,7 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
                         int index = i;
                         action = (GUIStyle style, GUILayoutOption[] options) =>
                         {
+                            float space = 6;
                             //由于难以正确获取列表对象大小，因此请手动传入
                             ES_Size size = member.GetAttribute<ES_Size>();
                             ESPercent percent = size.GetSizeType();
@@ -306,11 +307,10 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
 
                             if (index == 0)
                             {
-                                Debug.Log("重置");
-                                curWidth = 6;
+                                curWidth = space;
                             }
 
-                            curWidth += vec2Size.x + 6;
+                            curWidth += vec2Size.x + space;
 
                             //_totalWidth = LayoutGenerator.CalSize(elList.GetPercent(), new Vector2(elList.Width(), elList.Height()), this).x;
                             //if (_totalWidth == 0)
@@ -318,17 +318,14 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
                             //    _totalWidth = position.width * 0.75f;
                             //}
                             _totalWidth = position.width;
-                            Debug.Log("总宽度" + _totalWidth);
 
                             if (index < loop && curWidth > _totalWidth)
                             {
                                 // End the current horizontal group and begin a new one for the next row
-                                curWidth = vec2Size.x + 6;
+                                curWidth = vec2Size.x + space * 2;
                                 EditorGUILayout.EndHorizontal();
                                 EditorGUILayout.BeginHorizontal(new GUIStyle(GUI.skin.box));
-                                Debug.Log("另起一行");
                             }
-                            Debug.Log("换行" + index + ":" + curWidth + " ---- " + _totalWidth);
                         };
 
                         //_flex.Add(_onGUI.Count - 1, flex);
