@@ -1,15 +1,10 @@
-using Codice.Client.BaseCommands.BranchExplorer.Layout;
-using Palmmedia.ReportGenerator.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.UIElements;
-using UnityEngine.Windows;
 
 public class BaseEditor<T> : EditorWindow where T : EditorWindow
 {
@@ -22,6 +17,10 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
 
     private List<Func<GUILayoutOption[]>> _onOption = new List<Func<GUILayoutOption[]>>();
 
+    //Dictionary<int, Action> _flex = new Dictionary<int, Action>();
+
+    private float _totalWidth = 0;
+    private float curWidth = 0;
     //private List<>
 
     private BindingFlags flag = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly;
@@ -96,7 +95,7 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
             SetLayout(layout, true);
 
             //绘制UI
-            SetUI(member, ui, styles);
+            SetUI(member, layout, ui, styles);
 
             //绘制后置layout
             SetLayout(layout, false);
@@ -121,6 +120,12 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
             GUIStyle style = _onStyle[i]();
             GUILayoutOption[] option = _onOption[i]();
             _onGUI[i](style, option);
+            //Action flex;
+            //_flex.TryGetValue(i,out flex);
+            //if(flex != null)
+            //{
+            //    flex();
+            //}
         }
     }
 
@@ -178,18 +183,7 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
                             ESPercent percent = size.GetSizeType();
                             Vector2 vec2Size = size.GetSize();
 
-                            switch (percent)
-                            {
-                                case ESPercent.All:
-                                    vec2Size = position.size * vec2Size / 100;
-                                    break;
-                                case ESPercent.Width:
-                                    vec2Size.x = position.width * vec2Size.x / 100;
-                                    break;
-                                case ESPercent.Height:
-                                    vec2Size.y = position.height * vec2Size.y / 100;
-                                    break;
-                            }
+                            vec2Size = LayoutGenerator.CalSize(percent, vec2Size, this);
 
                             options.Add(GUILayout.Width(vec2Size.x));
                             options.Add(GUILayout.Height(vec2Size.y));
@@ -220,7 +214,7 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
                 {
                     SetStyle(ui);
                     SetOption(ui);
-                    GenerateUI(LayoutGenerator.GenerateHorizontal(front));
+                    _onGUI.Add(LayoutGenerator.GenerateHorizontal(front));
                 }
                 break;
             case EL_Vertical:
@@ -229,7 +223,7 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
                 {
                     SetStyle(ui);
                     SetOption(ui);
-                    GenerateUI(LayoutGenerator.GenerateVertical(front));
+                    _onGUI.Add(LayoutGenerator.GenerateVertical(front));
                 }
                 break;
         }
@@ -241,73 +235,183 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
     /// <param name="member"></param>
     /// <param name="ui"></param>
     /// <param name="styles"></param>
-    private void SetUI(MemberInfo member, object ui, List<object> styles)
+    private void SetUI(MemberInfo member, object layout, object ui, List<object> styles)
     {
-        //设置样式绘制函数
-        SetStyle(ui, styles);
-        SetOption(ui, styles);
 
         //创建ui
         if (member.MemberType == MemberTypes.Field)
         {
             FieldInfo fieldInfo = (FieldInfo)member;
-            //字段
-            switch (ui)
+
+            Func<int, object> GetVal;
+            object val;
+            string name;
+
+            int loop = 1;
+            bool isList = false;
+            bool isFlex = false;
+
+            EL_List elList = null;
+
+            if (layout is EL_List)
             {
-                case E_Label:
-                    //获取字段的值
-                    Func<string> getValueDelegate;
-                    if (((E_Label)ui).IsCanChange())
+                elList = (EL_List)layout;
+                loop = ((dynamic)fieldInfo.GetValue(this)).Count;
+
+                GetVal = (int i) =>
+                {
+                    object res = fieldInfo.GetValue(this);
+                    if (res != null)
                     {
-                        //可变
-                        getValueDelegate = () =>
-                        {
-                            return (string)fieldInfo.GetValue(this);
-                        };
+                        return ((dynamic)res)[i];
                     }
-                    else
+                    return null;
+                };
+                isList = true;
+                isFlex = ((EL_List)layout).ListType() == EL_ListType.Flex;
+            }
+            else
+            {
+                GetVal = (int i) =>
+                {
+                    return fieldInfo.GetValue(this);
+                };
+            }
+
+            Action doUI = () =>
+            {
+                for (int i = 0; i < loop; i++)
+                {
+                    //Rect currentRect = new Rect(0, 0, 0f, 0f);
+                    Action<GUIStyle, GUILayoutOption[]> action = null;
+
+                    val = GetVal(i);
+                    name = fieldInfo.Name;
+                    if (isList)
                     {
-                        //不可变
-                        string name = (string)fieldInfo.GetValue(this);
-                        getValueDelegate = () =>
-                        {
-                            return name;
-                        };
+                        name += "_" + i;
                     }
 
-                    GenerateUI(UIGenerator.GenerateLabel(getValueDelegate));
-                    break;
-                case E_Input:
-                    E_Input input = (E_Input)ui;
-                    GenerateUI(UIGenerator.GenerateInput(fieldInfo.Name, (string)fieldInfo.GetValue(this),
-                        this, input.GetWidth(), input.IsPercent(), input.IsDoubleLine()));
-                    break;
-                case E_Texture:
-                    GenerateUI(UIGenerator.GenerateObject<Texture>(fieldInfo.Name, (Texture)fieldInfo.GetValue(this)));
-                    break;
+                    //流式布局特殊判断，是否换行
+                    if (isFlex)
+                    {
+                        int index = i;
+                        action = (GUIStyle style, GUILayoutOption[] options) =>
+                        {
+                            //由于难以正确获取列表对象大小，因此请手动传入
+                            ES_Size size = member.GetAttribute<ES_Size>();
+                            ESPercent percent = size.GetSizeType();
+                            Vector2 vec2Size = size.GetSize();
+                            vec2Size = LayoutGenerator.CalSize(percent, vec2Size, this);
+
+                            if (index == 0)
+                            {
+                                Debug.Log("重置");
+                                curWidth = 6;
+                            }
+
+                            curWidth += vec2Size.x + 6;
+
+                            //_totalWidth = LayoutGenerator.CalSize(elList.GetPercent(), new Vector2(elList.Width(), elList.Height()), this).x;
+                            //if (_totalWidth == 0)
+                            //{
+                            //    _totalWidth = position.width * 0.75f;
+                            //}
+                            _totalWidth = position.width;
+                            Debug.Log("总宽度" + _totalWidth);
+
+                            if (index < loop && curWidth > _totalWidth)
+                            {
+                                // End the current horizontal group and begin a new one for the next row
+                                curWidth = vec2Size.x + 6;
+                                EditorGUILayout.EndHorizontal();
+                                EditorGUILayout.BeginHorizontal(new GUIStyle(GUI.skin.box));
+                                Debug.Log("另起一行");
+                            }
+                            Debug.Log("换行" + index + ":" + curWidth + " ---- " + _totalWidth);
+                        };
+
+                        //_flex.Add(_onGUI.Count - 1, flex);
+                    }
+
+                    //设置样式绘制函数
+                    SetStyle(ui, styles);
+                    SetOption(ui, styles);
+                    //字段
+                    switch (ui)
+                    {
+                        case E_Label:
+                            //获取字段的值
+                            Func<string> getValueDelegate;
+                            if (((E_Label)ui).IsCanChange())
+                            {
+                                //可变
+                                getValueDelegate = () =>
+                                {
+                                    return (string)GetVal(i);
+                                };
+                            }
+                            else
+                            {
+                                //不可变
+                                getValueDelegate = () =>
+                                {
+                                    return (string)val;
+                                };
+                            }
+
+                            action += UIGenerator.GenerateLabel(getValueDelegate);
+                            break;
+                        case E_Input:
+                            E_Input input = (E_Input)ui;
+                            action += UIGenerator.GenerateInput(name, (string)val,
+                                this, input.GetWidth(), input.IsPercent(), input.IsDoubleLine());
+                            break;
+                        case E_Texture:
+                            action += UIGenerator.GenerateObject(name, (Texture)val);
+                            break;
+                    }
+
+                    //_onGUI.Add(action);
+                    
+                    _onGUI.Add(action);
+                }
+            };
+
+            if (isList)
+            {
+                SetStyle(layout);
+                SetOption(layout);
+                Debug.Log("开始流式布局");
+                _onGUI.Add(LayoutGenerator.GenerateList(true, elList, this));
+
+                doUI();
+
+                SetStyle(layout);
+                SetOption(layout);
+                _onGUI.Add(LayoutGenerator.GenerateList(false, elList, this));
+            }
+            else
+            {
+                doUI();
             }
         }
         else if (member.MemberType == MemberTypes.Method)
         {
+            Action<GUIStyle, GUILayoutOption[]> action = null;
+            //设置样式绘制函数
+            SetStyle(ui, styles);
+            SetOption(ui, styles);
             //方法
             switch (ui)
             {
                 case E_Button:
                     E_Button attr = (E_Button)ui;
-                    GenerateUI(UIGenerator.GenerateButton(attr.GetName(), (MethodInfo)member, this));
+                    action = UIGenerator.GenerateButton(attr.GetName(), (MethodInfo)member, this);
                     break;
             }
-
+            _onGUI.Add(action);
         }
-    }
-
-    /// <summary>
-    /// 把生成的UI生成委托添加到委托列表
-    /// </summary>
-    /// <param name="action"></param>
-    private void GenerateUI(Action<GUIStyle, GUILayoutOption[]> action)
-    {
-        _onGUI.Add(action);
     }
 
     /// <summary>
@@ -332,6 +436,7 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
                 return layoutDef;
             case EL_Horizontal:
             case EL_Vertical:
+            case EL_List:
                 layoutDef = new GUIStyle(GUI.skin.box);
                 return layoutDef;
             case E_Texture:
@@ -340,5 +445,4 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
         }
         return new GUIStyle();
     }
-
 }

@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
 public class UIGenerator
 {
+    private static BindingFlags flag = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly;
     /// <summary>
     /// 生成Button
     /// </summary>
@@ -36,7 +38,6 @@ public class UIGenerator
     {
         Action<GUIStyle, GUILayoutOption[]> label = (GUIStyle style, GUILayoutOption[] options) =>
         {
-
             GUILayout.Label(labelName(), style, options);
         };
 
@@ -98,14 +99,34 @@ public class UIGenerator
     /// <returns></returns>
     public static Action<GUIStyle, GUILayoutOption[]> GenerateObject<T>(string name, T obj) where T : UnityEngine.Object
     {
-        Debug.Log("创建Object");
         Action<GUIStyle, GUILayoutOption[]> action = (GUIStyle style, GUILayoutOption[] options) =>
         {
-            EditorGUILayout.BeginVertical();
+            EditorGUILayout.BeginVertical(GetExtent(options));
             GUILayout.Label(name);
             obj = EditorGUILayout.ObjectField(obj, typeof(T), true, options) as T;
             EditorGUILayout.EndVertical();
         };
         return action;
+    }
+
+    private static GUILayoutOption[] GetExtent(GUILayoutOption[] options)
+    {
+        List<GUILayoutOption> list = new List<GUILayoutOption>();
+        foreach (var option in options)
+        {
+            Type type = option.GetType();
+            float num;
+            if (type.GetField("type", flag).GetValue(option).ToString() == "fixedHeight")
+            {
+                num = (float)type.GetField("value", flag).GetValue(option);
+                list.Add(GUILayout.Height(num + 20f));
+            }
+            else if (type.GetField("type", flag).GetValue(option).ToString() == "fixedWidth")
+            {
+                num = (float)type.GetField("value", flag).GetValue(option);
+                list.Add(GUILayout.Width(num + 6f));
+            }
+        }
+        return list.ToArray();
     }
 }

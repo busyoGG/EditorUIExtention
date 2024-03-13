@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 using System;
 
 /// <summary>
-/// 输入框 参数width：宽度；参数isPercent：是否百分比宽度；参数isDoubleLine：是否分两行显示
+/// 输入框 参数width：Key名字宽度；参数isPercent：是否百分比宽度；参数isDoubleLine：是否分两行显示
 /// </summary>
 [AttributeUsage(AttributeTargets.Field)]
 public class E_Input : EBase
