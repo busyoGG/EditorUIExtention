@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using Unity.VisualScripting;
@@ -10,18 +11,12 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
 {
     private bool _isInited = false;
 
+    private LayoutNode _root;
+
     private Type _type;
-    private List<Action<GUIStyle, GUILayoutOption[]>> _onGUI = new List<Action<GUIStyle, GUILayoutOption[]>>();
-
-    private List<Func<GUIStyle>> _onStyle = new List<Func<GUIStyle>>();
-
-    private List<Func<GUILayoutOption[]>> _onOption = new List<Func<GUILayoutOption[]>>();
-
-    //Dictionary<int, Action> _flex = new Dictionary<int, Action>();
 
     private float _totalWidth = 0;
     private float curWidth = 0;
-    //private List<>
 
     private BindingFlags flag = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
@@ -47,9 +42,15 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
         win.titleContent = new GUIContent(name);
     }
 
+    private void RefreshUIInit()
+    {
+        _root = null;
+        Init();
+    }
+
     private void Init()
     {
-
+        _root = new LayoutNode();
         Type type = GetType();
 
         //筛选包含编辑器拓展类型基类的对象
@@ -62,6 +63,7 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
                             .Where(x => x.Attribute != null)
                             .OrderBy(x => x.Attribute._lineNum);
 
+        LayoutNode node = _root;
         //遍历对象，创建生成函数
         foreach (var item in members)
         {
@@ -71,7 +73,8 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
             List<object> styles = new List<object>();
             object ui = null;
 
-            object layout = null;
+            //object layout = null;
+            List<object> layouts = new List<object>();
 
             //遍历所有特性，分装到样式和ui和布局
             foreach (var prop in propAttrs)
@@ -87,46 +90,125 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
                 }
                 else
                 {
-                    layout = prop;
+                    //layout = prop;
+                    layouts.Add(prop);
                 }
             }
 
-            //绘制前置layout
-            SetLayout(layout, true);
+            int back = 0;
+            if (layouts.Count > 0)
+            {
+                foreach (var layout in layouts)
+                {
+                    dynamic layoutData = layout;
 
-            //绘制UI
-            SetUI(member, layout, ui, styles);
+                    if (layoutData.IsStart())
+                    {
+                        LayoutNode next = new LayoutNode();
 
-            //绘制后置layout
-            SetLayout(layout, false);
+                        next.SetLayout(SetLayout(layout, next, member), (SetStyle(layout), SetOption(layout)));
+
+                        node.AddUi(next);
+                        node = next;
+
+                        if (layoutData is EL_List)
+                        {
+                            if (layoutData.IsSingle())
+                            {
+                                back++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //node = node.parent;
+                        back++;
+                    }
+                }
+            }
+
+
+            //定义Name和GetVal
+            Func<object> GetVal;
+
+            bool isField = false;
+
+            if (member.MemberType == MemberTypes.Field)
+            {
+                isField = true;
+            }
+
+            FieldInfo field = member as FieldInfo;
+
+            //判断数据类型是否List
+            bool isList = isField && field.FieldType.Name.IndexOf("List") != -1;
+
+            if (isList)
+            {
+                dynamic list = field.GetValue(this);
+
+                for (int i = 0; i < list.Count; i++)
+                {
+                    int index = i;
+                    if (isField)
+                    {
+                        GetVal = () =>
+                        {
+                            return list[index];
+                        };
+                        node.AddUi(SetUI(member, ui, styles, field.Name + "_" + i, GetVal));
+                    }
+                    else
+                    {
+                        node.AddUi(SetUI(member, ui, styles, "", null));
+                    }
+                }
+            }
+            else
+            {
+                if (isField)
+                {
+                    GetVal = () =>
+                    {
+                        object res = field.GetValue(this);
+                        if (res != null)
+                        {
+                            return res;
+                        }
+                        return null;
+                    };
+                    node.AddUi(SetUI(member, ui, styles, field.Name, GetVal));
+                }
+                else
+                {
+                    node.AddUi(SetUI(member, ui, styles, "", null));
+                }
+            }
+
+
+            for (int i = 0; i < back; i++)
+            {
+                node = node.parent;
+            }
         }
     }
 
     private void OnGUI()
     {
-        //if (!_isDirty)
-        //{
-        //    _isDirty = true;
-        //    int i = 0;
-        //    foreach (var data in GUI.skin.customStyles)
-        //    {
-        //        Debug.Log(i + " -- " + data.name);
-        //        i++;
-        //    }
-        //}
-        //遍历绘制ui
-        for (int i = 0; i < _onGUI.Count; i++)
+        Render(_root);
+    }
+
+    private void Render(LayoutNode node)
+    {
+        if (node._layout != null)
         {
-            GUIStyle style = _onStyle[i]();
-            GUILayoutOption[] option = _onOption[i]();
-            _onGUI[i](style, option);
-            //Action flex;
-            //_flex.TryGetValue(i,out flex);
-            //if(flex != null)
-            //{
-            //    flex();
-            //}
+            node._layout();
         }
+        else
+        {
+            NormalRender(node)();
+        }
+
     }
 
 
@@ -135,9 +217,9 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
     /// </summary>
     /// <param name="ui"></param>
     /// <param name="styles"></param>
-    private void SetStyle(object ui, List<object> styles = null)
+    private Func<GUIStyle> SetStyle(object ui, List<object> styles = null)
     {
-        if (ui == null) return;
+        if (ui == null) return null;
 
         GUIStyle guiStyle = null;
 
@@ -162,12 +244,12 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
             return guiStyle;
         };
 
-        _onStyle.Add(setStyle);
+        return setStyle;
     }
 
-    private void SetOption(object ui, List<object> styles = null)
+    private Func<GUILayoutOption[]> SetOption(object ui, List<object> styles = null)
     {
-        if (ui == null) return;
+        if (ui == null) return null;
         Func<GUILayoutOption[]> action = () =>
         {
             List<GUILayoutOption> options = new List<GUILayoutOption>();
@@ -195,7 +277,7 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
             return options.ToArray();
         };
 
-        _onOption.Add(action);
+        return action;
     }
 
     /// <summary>
@@ -203,30 +285,21 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
     /// </summary>
     /// <param name="ui"></param>
     /// <param name="front"></param>
-    private void SetLayout(object ui, bool front)
+    private Action<GUIStyle, GUILayoutOption[]> SetLayout(object layout, LayoutNode node, MemberInfo member)
     {
-        if (ui == null) return;
-        switch (ui)
+        if (layout == null) return null;
+        switch (layout)
         {
             case EL_Horizontal:
-                EL_Horizontal horizontal = (EL_Horizontal)ui;
-                if (horizontal.IsStart() == front)
-                {
-                    SetStyle(ui);
-                    SetOption(ui);
-                    _onGUI.Add(LayoutGenerator.GenerateHorizontal(front));
-                }
-                break;
+                return LayoutGenerator.GenerateHorizontal(NormalRender(node));
             case EL_Vertical:
-                EL_Vertical vertical = (EL_Vertical)ui;
-                if (vertical.IsStart() == front)
-                {
-                    SetStyle(ui);
-                    SetOption(ui);
-                    _onGUI.Add(LayoutGenerator.GenerateVertical(front));
-                }
-                break;
+                return LayoutGenerator.GenerateVertical(NormalRender(node));
+            case EL_List:
+                return LayoutGenerator.GenerateList(FlexRender(node, member), (EL_List)layout, this);
+            case EL_Foldout:
+                return LayoutGenerator.GenerateFoldout(NormalRender(node), (EL_Foldout)layout);
         }
+        return null;
     }
 
     /// <summary>
@@ -235,171 +308,44 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
     /// <param name="member"></param>
     /// <param name="ui"></param>
     /// <param name="styles"></param>
-    private void SetUI(MemberInfo member, object layout, object ui, List<object> styles)
+    private UIListData SetUI(MemberInfo member, object ui, List<object> styles, string name, Func<object> getVal)
     {
-
+        UIListData list = new UIListData();
         //创建ui
         if (member.MemberType == MemberTypes.Field)
         {
-            FieldInfo fieldInfo = (FieldInfo)member;
+            //字段
+            Action<GUIStyle, GUILayoutOption[]> action = null;
 
-            Func<int, object> GetVal;
-            object val;
-            string name;
+            object val = getVal();
 
-            int loop = 1;
-            bool isList = false;
-            bool isFlex = false;
-
-            EL_List elList = null;
-
-            if (layout is EL_List)
+            switch (ui)
             {
-                elList = (EL_List)layout;
-                loop = ((dynamic)fieldInfo.GetValue(this)).Count;
-
-                GetVal = (int i) =>
-                {
-                    object res = fieldInfo.GetValue(this);
-                    if (res != null)
+                case E_Label:
+                    Func<string> labelName = () =>
                     {
-                        return ((dynamic)res)[i];
-                    }
-                    return null;
-                };
-                isList = true;
-                isFlex = ((EL_List)layout).ListType() == EL_ListType.Flex;
-            }
-            else
-            {
-                GetVal = (int i) =>
-                {
-                    return fieldInfo.GetValue(this);
-                };
+                        return (string)getVal();
+                    };
+                    action = UIGenerator.GenerateLabel(labelName);
+                    break;
+                case E_Input:
+                    E_Input input = (E_Input)ui;
+                    action = UIGenerator.GenerateInput(name, (string)val,
+                        this, input.GetWidth(), input.IsPercent(), input.IsDoubleLine());
+                    break;
+                case E_Texture:
+                    action = UIGenerator.GenerateObject(name, (Texture)val);
+                    break;
             }
 
-            Action doUI = () =>
-            {
-                for (int i = 0; i < loop; i++)
-                {
-                    //Rect currentRect = new Rect(0, 0, 0f, 0f);
-                    Action<GUIStyle, GUILayoutOption[]> action = null;
-
-                    val = GetVal(i);
-                    name = fieldInfo.Name;
-                    if (isList)
-                    {
-                        name += "_" + i;
-                    }
-
-                    //流式布局特殊判断，是否换行
-                    if (isFlex)
-                    {
-                        int index = i;
-                        action = (GUIStyle style, GUILayoutOption[] options) =>
-                        {
-                            float space = 6;
-                            //由于难以正确获取列表对象大小，因此请手动传入
-                            ES_Size size = member.GetAttribute<ES_Size>();
-                            ESPercent percent = size.GetSizeType();
-                            Vector2 vec2Size = size.GetSize();
-                            vec2Size = LayoutGenerator.CalSize(percent, vec2Size, this);
-
-                            if (index == 0)
-                            {
-                                curWidth = space;
-                            }
-
-                            curWidth += vec2Size.x + space;
-
-                            //_totalWidth = LayoutGenerator.CalSize(elList.GetPercent(), new Vector2(elList.Width(), elList.Height()), this).x;
-                            //if (_totalWidth == 0)
-                            //{
-                            //    _totalWidth = position.width * 0.75f;
-                            //}
-                            _totalWidth = position.width;
-
-                            if (index < loop && curWidth > _totalWidth)
-                            {
-                                // End the current horizontal group and begin a new one for the next row
-                                curWidth = vec2Size.x + space * 2;
-                                EditorGUILayout.EndHorizontal();
-                                EditorGUILayout.BeginHorizontal(new GUIStyle(GUI.skin.box));
-                            }
-                        };
-
-                        //_flex.Add(_onGUI.Count - 1, flex);
-                    }
-
-                    //设置样式绘制函数
-                    SetStyle(ui, styles);
-                    SetOption(ui, styles);
-                    //字段
-                    switch (ui)
-                    {
-                        case E_Label:
-                            //获取字段的值
-                            Func<string> getValueDelegate;
-                            if (((E_Label)ui).IsCanChange())
-                            {
-                                //可变
-                                getValueDelegate = () =>
-                                {
-                                    return (string)GetVal(i);
-                                };
-                            }
-                            else
-                            {
-                                //不可变
-                                getValueDelegate = () =>
-                                {
-                                    return (string)val;
-                                };
-                            }
-
-                            action += UIGenerator.GenerateLabel(getValueDelegate);
-                            break;
-                        case E_Input:
-                            E_Input input = (E_Input)ui;
-                            action += UIGenerator.GenerateInput(name, (string)val,
-                                this, input.GetWidth(), input.IsPercent(), input.IsDoubleLine());
-                            break;
-                        case E_Texture:
-                            action += UIGenerator.GenerateObject(name, (Texture)val);
-                            break;
-                    }
-
-                    //_onGUI.Add(action);
-                    
-                    _onGUI.Add(action);
-                }
-            };
-
-            if (isList)
-            {
-                SetStyle(layout);
-                SetOption(layout);
-                Debug.Log("开始流式布局");
-                _onGUI.Add(LayoutGenerator.GenerateList(true, elList, this));
-
-                doUI();
-
-                SetStyle(layout);
-                SetOption(layout);
-                _onGUI.Add(LayoutGenerator.GenerateList(false, elList, this));
-            }
-            else
-            {
-                doUI();
-            }
+            list.style = SetStyle(ui, styles);
+            list.options = SetOption(ui, styles);
+            list.action = action;
         }
         else if (member.MemberType == MemberTypes.Method)
         {
-            Action<GUIStyle, GUILayoutOption[]> action = null;
-            //设置样式绘制函数
-            SetStyle(ui, styles);
-            SetOption(ui, styles);
             //方法
+            Action<GUIStyle, GUILayoutOption[]> action = null;
             switch (ui)
             {
                 case E_Button:
@@ -407,8 +353,13 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
                     action = UIGenerator.GenerateButton(attr.GetName(), (MethodInfo)member, this);
                     break;
             }
-            _onGUI.Add(action);
+
+            list.style = SetStyle(ui, styles);
+            list.options = SetOption(ui, styles);
+            list.action = action;
         }
+
+        return list;
     }
 
     /// <summary>
@@ -436,10 +387,85 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
             case EL_List:
                 layoutDef = new GUIStyle(GUI.skin.box);
                 return layoutDef;
-            case E_Texture:
-                layoutDef = new GUIStyle();
-                return layoutDef;
         }
         return new GUIStyle();
+    }
+
+    /// <summary>
+    /// 普通渲染
+    /// </summary>
+    /// <param name="node"></param>
+    /// <returns></returns>
+    private Action NormalRender(LayoutNode node)
+    {
+        Action action = () =>
+        {
+            foreach (var ui in node._list)
+            {
+                if (ui is LayoutNode)
+                {
+                    Render((LayoutNode)ui);
+                }
+                else
+                {
+                    UIListData data = (UIListData)ui;
+                    data.action(data.style(), data.options());
+                }
+            }
+        };
+        return action;
+    }
+
+    /// <summary>
+    /// 流式渲染
+    /// </summary>
+    /// <param name="node"></param>
+    /// <param name="member"></param>
+    /// <returns></returns>
+    private Action FlexRender(LayoutNode node, MemberInfo member)
+    {
+        Action action = () =>
+        {
+            int i = 0;
+            foreach (var ui in node._list)
+            {
+                int index = i;
+
+                float space = 6;
+                //由于难以正确获取列表对象大小，因此请手动传入
+                ES_Size size = member.GetAttribute<ES_Size>();
+                ESPercent percent = size.GetSizeType();
+                Vector2 vec2Size = size.GetSize();
+                vec2Size = LayoutGenerator.CalSize(percent, vec2Size, this);
+
+                if (index == 0)
+                {
+                    curWidth = space;
+                }
+
+                curWidth += vec2Size.x + space;
+
+                _totalWidth = position.width;
+
+                if (index < node._list.Count && curWidth > _totalWidth)
+                {
+                    curWidth = vec2Size.x + space * 2;
+                    EditorGUILayout.EndHorizontal();
+                    EditorGUILayout.BeginHorizontal(new GUIStyle(GUI.skin.box));
+                }
+
+                if (ui is LayoutNode)
+                {
+                    Render((LayoutNode)ui);
+                }
+                else
+                {
+                    UIListData data = (UIListData)ui;
+                    data.action(data.style(), data.options());
+                }
+                i++;
+            }
+        };
+        return action;
     }
 }

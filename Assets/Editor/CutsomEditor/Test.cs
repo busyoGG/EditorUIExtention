@@ -12,7 +12,7 @@ public class Test : BaseEditor<Test>
         //GetWindow<Test>().Close();
     }
 
-    [E_Label(true), EL_Horizontal(true)]
+    [E_Label, EL_Horizontal(true)]
     public string label = "≤‚ ‘Label";
 
     [E_Input(50, false), ES_Size(40, 40, ESPercent.Width)]
@@ -31,9 +31,9 @@ public class Test : BaseEditor<Test>
     [E_Texture, ES_Size(70, 70), EL_Horizontal(false)]
     public Texture texture;
 
-    [E_Texture, ES_Size(70, 70), EL_List(EL_ListType.Flex, true, 100, 200, ESPercent.Width)]
+    [E_Texture, ES_Size(70, 70), EL_Foldout(true, "≤‚ ‘’€µ˛"), EL_List(true, EL_ListType.Flex, true, true, 100, 200, ESPercent.Width)]
     public List<Texture> tex = new List<Texture>() { null, null, null, null, null, null };
 
-    [E_Label, ES_Size(70, 70), EL_List(EL_ListType.Flex)]
+    [E_Label, ES_Size(70, 70), EL_List(true, EL_ListType.Flex, true), EL_Foldout(false)]
     public List<string> labels = new List<string>() { "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa" };
 }

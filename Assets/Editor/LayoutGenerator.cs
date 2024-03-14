@@ -9,43 +9,68 @@ using UnityEngine.UIElements;
 
 public class LayoutGenerator
 {
-    public static Action<GUIStyle, GUILayoutOption[]> GenerateHorizontal(bool isStart)
+    /// <summary>
+    /// 生成水平布局
+    /// </summary>
+    /// <param name="isStart"></param>
+    /// <returns></returns>
+    public static Action<GUIStyle, GUILayoutOption[]> GenerateHorizontal(Action renderAction)
     {
         Action<GUIStyle, GUILayoutOption[]> action = (GUIStyle style, GUILayoutOption[] options) =>
         {
-            if (isStart)
-            {
-                EditorGUILayout.BeginHorizontal(style, options);
-            }
-            else
-            {
-                GUILayout.EndHorizontal();
-            }
+            EditorGUILayout.BeginHorizontal(style, options);
+            renderAction();
+            GUILayout.EndHorizontal();
         };
         return action;
     }
 
-    public static Action<GUIStyle, GUILayoutOption[]> GenerateVertical(bool isStart)
+    /// <summary>
+    /// 生成竖直布局
+    /// </summary>
+    /// <param name="isStart"></param>
+    /// <returns></returns>
+    public static Action<GUIStyle, GUILayoutOption[]> GenerateVertical(Action renderAction)
     {
         Action<GUIStyle, GUILayoutOption[]> action = (GUIStyle style, GUILayoutOption[] options) =>
         {
-            if (isStart)
+            EditorGUILayout.BeginVertical(style, options);
+            renderAction();
+            GUILayout.EndVertical();
+        };
+        return action;
+    }
+
+    /// <summary>
+    /// 生成折叠
+    /// </summary>
+    /// <param name="isStart"></param>
+    /// <returns></returns>
+    public static Action<GUIStyle, GUILayoutOption[]> GenerateFoldout(Action renderAction, EL_Foldout elFoldout)
+    {
+        Action<GUIStyle, GUILayoutOption[]> action = (GUIStyle style, GUILayoutOption[] options) =>
+        {
+            elFoldout.IsOpen(EditorGUILayout.BeginFoldoutHeaderGroup(elFoldout.IsOpen(), elFoldout.Name()));
+            if (elFoldout.IsOpen())
             {
-                EditorGUILayout.BeginVertical(style, options);
+                renderAction();
             }
-            else
-            {
-                GUILayout.EndVertical();
-            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
         };
         return action;
     }
 
 
-
-    public static Action<GUIStyle, GUILayoutOption[]> GenerateList(bool isStart, EL_List elList, EditorWindow obj)
+    /// <summary>
+    /// 生成列表
+    /// </summary>
+    /// <param name="isStart"></param>
+    /// <param name="elList"></param>
+    /// <param name="obj"></param>
+    /// <returns></returns>
+    public static Action<GUIStyle, GUILayoutOption[]> GenerateList(Action renderAction,EL_List elList, EditorWindow obj)
     {
-        Action<GUIStyle, GUILayoutOption[]> action = (GUIStyle style, GUILayoutOption[] options) =>
+        Action< GUIStyle, GUILayoutOption[]> action = (GUIStyle style, GUILayoutOption[] options) =>
         {
             Vector2 size = CalSize(elList.GetPercent(), new Vector2(elList.Width(), elList.Height()), obj);
             switch (elList.ListType())
@@ -53,54 +78,38 @@ public class LayoutGenerator
                 case EL_ListType.Verticle:
                     if (elList.Scroll())
                     {
-                        if (isStart)
-                        {
-                            elList.ScrollPosition(EditorGUILayout.BeginScrollView(elList.ScrollPosition(), style,GUILayout.Height(size.y), GUILayout.Width(size.x)));
-                            EditorGUILayout.BeginVertical();
-                        }
-                        else
-                        {
-                            EditorGUILayout.EndVertical();
-                            EditorGUILayout.EndScrollView();
-                        }
+                        elList.ScrollPosition(EditorGUILayout.BeginScrollView(elList.ScrollPosition(), style, GUILayout.Height(size.y), GUILayout.Width(size.x)));
+                        EditorGUILayout.BeginVertical();
+
+                        renderAction();
+
+                        EditorGUILayout.EndVertical();
+                        EditorGUILayout.EndScrollView();
                     }
                     else
                     {
-                        if (isStart)
-                        {
-                            EditorGUILayout.BeginVertical(style, GUILayout.Height(size.y), GUILayout.Width(size.x));
-                        }
-                        else
-                        {
-                            EditorGUILayout.EndVertical();
-                        }
+                        EditorGUILayout.BeginVertical(style, GUILayout.Height(size.y), GUILayout.Width(size.x));
+                        renderAction();
+                        EditorGUILayout.EndVertical();
                     }
                     break;
                 case EL_ListType.Horizontal:
                 case EL_ListType.Flex:
                     if (elList.Scroll())
                     {
-                        if (isStart)
-                        {
-                            elList.ScrollPosition(EditorGUILayout.BeginScrollView(elList.ScrollPosition(), style, GUILayout.Height(size.y), GUILayout.Width(size.x)));
-                            EditorGUILayout.BeginHorizontal();
-                        }
-                        else
-                        {
-                            EditorGUILayout.EndHorizontal();
-                            EditorGUILayout.EndScrollView();
-                        }
+                        elList.ScrollPosition(EditorGUILayout.BeginScrollView(elList.ScrollPosition(), style, GUILayout.Height(size.y), GUILayout.Width(size.x)));
+                        EditorGUILayout.BeginHorizontal();
+
+                        renderAction();
+
+                        EditorGUILayout.EndHorizontal();
+                        EditorGUILayout.EndScrollView();
                     }
                     else
                     {
-                        if (isStart)
-                        {
-                            EditorGUILayout.BeginHorizontal(style, GUILayout.Height(size.y), GUILayout.Width(size.x));
-                        }
-                        else
-                        {
-                            EditorGUILayout.EndHorizontal();
-                        }
+                        EditorGUILayout.BeginHorizontal(style, GUILayout.Height(size.y), GUILayout.Width(size.x));
+                        renderAction();
+                        EditorGUILayout.EndHorizontal();
                     }
                     break;
             }
@@ -114,7 +123,7 @@ public class LayoutGenerator
     /// <param name="percent"></param>
     /// <param name="vec2Size"></param>
     /// <returns></returns>
-    public static Vector2 CalSize(ESPercent percent, Vector2 vec2Size,EditorWindow obj)
+    public static Vector2 CalSize(ESPercent percent, Vector2 vec2Size, EditorWindow obj)
     {
         switch (percent)
         {

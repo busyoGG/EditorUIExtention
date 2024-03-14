@@ -15,6 +15,7 @@ public enum EL_ListType
 /// </summary>
 public class EL_List : Attribute
 {
+    private bool _isStart;
 
     private EL_ListType _listType;
 
@@ -28,18 +29,24 @@ public class EL_List : Attribute
 
     private Vector2 _scrollPosition = Vector2.zero;
 
-    public EL_List(EL_ListType listType)
+    private bool _isSingle;
+
+    public EL_List(bool isStart, EL_ListType listType, bool isSingle)
     {
+        _isStart = isStart;
         _listType = listType;
+        _isSingle = isSingle;
     }
 
-    public EL_List(EL_ListType listType, bool scroll, float width, float height,ESPercent percent = ESPercent.None)
+    public EL_List(bool isStart, EL_ListType listType, bool isSingle, bool scroll, float width, float height, ESPercent percent = ESPercent.None)
     {
+        _isStart = isStart;
         _listType = listType;
         _scroll = scroll;
         _width = width;
         _height = height;
         _percent = percent;
+        _isSingle = isSingle;
     }
 
     public EL_ListType ListType()
@@ -75,5 +82,15 @@ public class EL_List : Attribute
     public ESPercent GetPercent()
     {
         return _percent;
+    }
+
+    public bool IsStart()
+    {
+        return _isStart;
+    }
+
+    public bool IsSingle()
+    {
+        return _isSingle;
     }
 }
