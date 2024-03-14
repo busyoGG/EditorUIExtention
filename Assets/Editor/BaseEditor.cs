@@ -197,9 +197,9 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
 
     private void OnGUI()
     {
-        GUIStyle panel = new GUIStyle();
-        panel.margin = new RectOffset(0, 0, 0, 0);
-        _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition, GUIStyle.none, panel);
+        //GUIStyle panel = new GUIStyle();
+        //panel.margin = new RectOffset(0, 0, 0, 0);
+        _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition, GUIStyle.none, GUIStyle.none);
         Render(_root);
         EditorGUILayout.EndScrollView();
     }
