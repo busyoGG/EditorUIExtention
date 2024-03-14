@@ -15,14 +15,16 @@ public class Test : BaseEditor<Test>
     [E_Label, EL_Horizontal(true)]
     public string label = "测试Label";
 
-    [E_Input(50, false), ES_Size(40, 40, ESPercent.Width)]
+    [E_Input(50, false), ES_Size(20, 40, ESPercent.Width)]
     public string strInput;
 
-    [E_Button("测试按钮"), ES_Size(50, 40, ESPercent.Width), EL_Horizontal(false)]
+    [E_Button("测试按钮"), ES_Size(20, 40, ESPercent.Width), EL_Horizontal(false)]
     public void ShowHello()
     {
         //Debug.Log("点击测试按钮");
-        label = "修改label";
+        //label = "修改label";
+        tex.Add(null);
+        Refresh();
     }
 
     [E_Label, EL_Horizontal(true)]
@@ -36,4 +38,17 @@ public class Test : BaseEditor<Test>
 
     [E_Label, ES_Size(70, 70), EL_List(true, EL_ListType.Flex, true), EL_Foldout(false)]
     public List<string> labels = new List<string>() { "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa" };
+
+    [E_Label, ES_Size(70, 70), EL_List(true, EL_ListType.Verticle, false, true, 100, 200, ESPercent.Width)]
+    public string labelL1 = "测凉列表1";
+    [E_Label, ES_Size(70, 100)]
+    public string labelL2 = "测试列表2";
+    [E_Label, ES_Size(70, 70), EL_List(false, EL_ListType.Verticle, false)]
+    public string labelL3 = "测试列表3";
+
+    [E_Button("刷新界面")]
+    public void Refresh()
+    {
+        RefreshUIInit();
+    }
 }

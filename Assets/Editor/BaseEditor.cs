@@ -18,6 +18,8 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
     private float _totalWidth = 0;
     private float curWidth = 0;
 
+    private Vector2 _scrollPosition = Vector2.zero;
+
     private BindingFlags flag = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
 
@@ -42,7 +44,7 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
         win.titleContent = new GUIContent(name);
     }
 
-    private void RefreshUIInit()
+    protected void RefreshUIInit()
     {
         _root = null;
         Init();
@@ -195,7 +197,11 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
 
     private void OnGUI()
     {
+        GUIStyle panel = new GUIStyle();
+        panel.margin = new RectOffset(0, 0, 0, 0);
+        _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition, GUIStyle.none, panel);
         Render(_root);
+        EditorGUILayout.EndScrollView();
     }
 
     private void Render(LayoutNode node)

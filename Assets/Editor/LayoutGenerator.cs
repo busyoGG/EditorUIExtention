@@ -125,16 +125,17 @@ public class LayoutGenerator
     /// <returns></returns>
     public static Vector2 CalSize(ESPercent percent, Vector2 vec2Size, EditorWindow obj)
     {
+        Vector2 size = obj.position.size - new Vector2(6, 6);
         switch (percent)
         {
             case ESPercent.All:
-                vec2Size = obj.position.size * vec2Size / 100;
+                vec2Size = size * vec2Size / 100;
                 break;
             case ESPercent.Width:
-                vec2Size.x = obj.position.width * vec2Size.x / 100;
+                vec2Size.x = size.x * vec2Size.x / 100;
                 break;
             case ESPercent.Height:
-                vec2Size.y = obj.position.height * vec2Size.y / 100;
+                vec2Size.y = size.y * vec2Size.y / 100;
                 break;
         }
         return vec2Size;
