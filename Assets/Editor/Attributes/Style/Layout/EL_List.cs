@@ -31,6 +31,11 @@ public class EL_List : Attribute
 
     private bool _isSingle;
 
+    public EL_List(bool isStart)
+    {
+        _isStart = isStart;
+    }
+
     public EL_List(bool isStart, EL_ListType listType, bool isSingle)
     {
         _isStart = isStart;

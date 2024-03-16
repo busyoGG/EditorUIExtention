@@ -9,7 +9,6 @@ public class Test : BaseEditor<Test>
     public static void ShowWindow()
     {
         GetWindow<Test>().Show();
-        //GetWindow<Test>().Close();
     }
 
     [E_Label, EL_Horizontal(true)]

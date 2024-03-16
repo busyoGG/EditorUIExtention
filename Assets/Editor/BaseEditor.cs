@@ -223,6 +223,7 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
     /// </summary>
     /// <param name="ui"></param>
     /// <param name="styles"></param>
+    /// <returns></returns>
     private Func<GUIStyle> SetStyle(object ui, List<object> styles = null)
     {
         if (ui == null) return null;
@@ -253,6 +254,12 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
         return setStyle;
     }
 
+    /// <summary>
+    /// 设置GUILayout
+    /// </summary>
+    /// <param name="ui"></param>
+    /// <param name="styles"></param>
+    /// <returns></returns>
     private Func<GUILayoutOption[]> SetOption(object ui, List<object> styles = null)
     {
         if (ui == null) return null;
@@ -261,7 +268,7 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
             List<GUILayoutOption> options = new List<GUILayoutOption>();
             if (styles != null)
             {
-                //创建GUIStyle
+                //创建GUILayoutOption
                 foreach (var style in styles)
                 {
                     switch (style)
@@ -289,8 +296,10 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
     /// <summary>
     /// 设置布局
     /// </summary>
-    /// <param name="ui"></param>
-    /// <param name="front"></param>
+    /// <param name="layout"></param>
+    /// <param name="node"></param>
+    /// <param name="member"></param>
+    /// <returns></returns>
     private Action<GUIStyle, GUILayoutOption[]> SetLayout(object layout, LayoutNode node, MemberInfo member)
     {
         if (layout == null) return null;
@@ -301,7 +310,9 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
             case EL_Vertical:
                 return LayoutGenerator.GenerateVertical(NormalRender(node));
             case EL_List:
-                return LayoutGenerator.GenerateList(FlexRender(node, member), (EL_List)layout, this);
+                EL_List elList = (EL_List)layout;
+                Action render = elList.ListType() == EL_ListType.Flex ? FlexRender(node, member) : NormalRender(node);
+                return LayoutGenerator.GenerateList(render, (EL_List)layout, this);
             case EL_Foldout:
                 return LayoutGenerator.GenerateFoldout(NormalRender(node), (EL_Foldout)layout);
         }
@@ -314,6 +325,9 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
     /// <param name="member"></param>
     /// <param name="ui"></param>
     /// <param name="styles"></param>
+    /// <param name="name"></param>
+    /// <param name="getVal"></param>
+    /// <returns></returns>
     private UIListData SetUI(MemberInfo member, object ui, List<object> styles, string name, Func<object> getVal)
     {
         UIListData list = new UIListData();

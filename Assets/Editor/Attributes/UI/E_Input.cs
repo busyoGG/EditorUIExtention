@@ -13,7 +13,7 @@ public class E_Input : EBase
 
     private int _width;
 
-    public E_Input(int width,bool isPercent = true,bool isDoubleLine = false, [CallerLineNumber] int lineNumber = 0)
+    public E_Input(int width = 30,bool isPercent = true,bool isDoubleLine = false, [CallerLineNumber] int lineNumber = 0)
     {
         _width = width;
         _isPercent = isPercent;
