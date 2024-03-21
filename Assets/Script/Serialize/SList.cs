@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
+using Unity.VisualScripting;
 using UnityEngine;
 
 [Serializable]
@@ -10,11 +10,6 @@ public class SList<TValue> : ISerializationCallbackReceiver, IList<TValue>
 {
     [SerializeField] private List<SValue<TValue>> list = new List<SValue<TValue>>();
 
-
-    public SList()
-    {
-
-    }
 
     public void OnBeforeSerialize() { }
 
@@ -30,13 +25,13 @@ public class SList<TValue> : ISerializationCallbackReceiver, IList<TValue>
 
     public TValue this[int index]
     {
-        get => list[index].Value;
+        get => list[index].value;
         set
         {
             if (index < list.Count)
             {
                 SValue<TValue> v = list[index];
-                v.Value = value;
+                v.value = value;
                 list[index] = v;
             }
             else
@@ -55,7 +50,7 @@ public class SList<TValue> : ISerializationCallbackReceiver, IList<TValue>
 
         static TValue ToKeyValuePair(SValue<TValue> sb)
         {
-            return sb.Value;
+            return sb.value;
         }
     }
 
@@ -67,7 +62,7 @@ public class SList<TValue> : ISerializationCallbackReceiver, IList<TValue>
     {
         for (int i = 0; i < list.Count; i++)
         {
-            if (list[i].Value.Equals(item))
+            if (list[i].value.Equals(item))
             {
                 return i;
             }
@@ -104,10 +99,14 @@ public class SList<TValue> : ISerializationCallbackReceiver, IList<TValue>
     public void CopyTo(TValue[] array, int arrayIndex)
     {
         SList<TValue> newList = new SList<TValue>();
-        foreach (var data in list)
+        for (var index = 0; index < list.Count; index++)
         {
-            newList.Add(data.Value);
+            if (index < arrayIndex) continue;
+            var data = list[index];
+            newList.Add(data.value);
         }
+
+        array.AddRange(newList);
     }
 
     public bool Remove(TValue item)
@@ -126,7 +125,7 @@ public class SList<TValue> : ISerializationCallbackReceiver, IList<TValue>
         List<TValue> l = new List<TValue>();
         foreach (var item in list)
         {
-            l.Add(item.Value);
+            l.Add(item.value);
         }
         return l;
     }

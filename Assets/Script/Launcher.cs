@@ -1,7 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public enum Tabs
 {
@@ -11,9 +10,9 @@ public enum Tabs
 
 public class Launcher : MonoBehaviour
 {
-    public SDictionary<Tabs, string> _dic = new SDictionary<Tabs, string>();
+    [FormerlySerializedAs("Dic")] public SDictionary<Tabs, string> dic = new SDictionary<Tabs, string>();
 
-    public SList<SList<int>> _list;
+    [FormerlySerializedAs("List")] public SList<SList<int>> list;
 
     // Start is called before the first frame update
     void Start()
@@ -21,17 +20,13 @@ public class Launcher : MonoBehaviour
         //_dic.Add(1, "≤‚ ‘1");
         //_dic.Add(2, "≤‚ ‘2");
 
-        foreach (var data in _dic)
+        foreach (var data in this.dic)
         {
             Debug.Log(" ˝æ›:" + data.Key + "-" + data.Value);
         }
-        Dictionary<Tabs, string> dic = _dic.ToDictionary();
-        Debug.Log(_dic[Tabs.Tab1].ToString());
+        Dictionary<Tabs, string> dictionary = this.dic.ToDictionary();
+        Debug.Log(dictionary[Tabs.Tab1]);
     }
 
     // Update is called once per frame
-    void Update()
-    {
-
-    }
 }

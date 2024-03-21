@@ -25,7 +25,7 @@ public class SDictionary<TKey, TValue> : SDictionary, ISerializationCallbackRece
         var dictionary = new Dictionary<TKey, int>(list.Count);
         for (var i = 0; i < list.Count; i++)
         {
-            dictionary[list[i].Key] = i;
+            dictionary[list[i].key] = i;
         }
         return dictionary;
     }
@@ -41,7 +41,7 @@ public class SDictionary<TKey, TValue> : SDictionary, ISerializationCallbackRece
 
     public TValue this[TKey key]
     {
-        get => list[KeyPositions[key]].Value;
+        get => list[KeyPositions[key]].value;
         set
         {
             var pair = new SKeyValue<TKey,TValue>(key, value);
@@ -57,8 +57,8 @@ public class SDictionary<TKey, TValue> : SDictionary, ISerializationCallbackRece
         }
     }
 
-    public ICollection<TKey> Keys => list.Select(tuple => tuple.Key).ToArray();
-    public ICollection<TValue> Values => list.Select(tuple => tuple.Value).ToArray();
+    public ICollection<TKey> Keys => list.Select(tuple => tuple.key).ToArray();
+    public ICollection<TValue> Values => list.Select(tuple => tuple.value).ToArray();
 
     public void Add(TKey key, TValue value)
     {
@@ -81,7 +81,7 @@ public class SDictionary<TKey, TValue> : SDictionary, ISerializationCallbackRece
 
             list.RemoveAt(index);
             for (var i = index; i < list.Count; i++)
-                KeyPositions[list[i].Key] = i;
+                KeyPositions[list[i].key] = i;
 
             return true;
         }
@@ -93,7 +93,7 @@ public class SDictionary<TKey, TValue> : SDictionary, ISerializationCallbackRece
     {
         if (KeyPositions.TryGetValue(key, out var index))
         {
-            value = list[index].Value;
+            value = list[index].value;
             return true;
         }
         else
@@ -123,7 +123,7 @@ public class SDictionary<TKey, TValue> : SDictionary, ISerializationCallbackRece
         for (var i = 0; i < numKeys; i++, arrayIndex++)
         {
             var entry = list[i];
-            array[arrayIndex] = new KeyValuePair<TKey, TValue>(entry.Key, entry.Value);
+            array[arrayIndex] = new KeyValuePair<TKey, TValue>(entry.key, entry.value);
         }
     }
 
@@ -134,7 +134,7 @@ public class SDictionary<TKey, TValue> : SDictionary, ISerializationCallbackRece
         Dictionary<TKey, TValue> dic = new Dictionary<TKey, TValue>();
         foreach(var kvp in list)
         {
-            dic.Add(kvp.Key, kvp.Value);
+            dic.Add(kvp.key, kvp.value);
         }
         return dic;
     }
@@ -149,7 +149,7 @@ public class SDictionary<TKey, TValue> : SDictionary, ISerializationCallbackRece
 
         static KeyValuePair<TKey, TValue> ToKeyValuePair(SKeyValue<TKey, TValue> skvp)
         {
-            return new KeyValuePair<TKey, TValue>(skvp.Key, skvp.Value);
+            return new KeyValuePair<TKey, TValue>(skvp.key, skvp.value);
         }
     }
 

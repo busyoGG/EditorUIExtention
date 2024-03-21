@@ -7,9 +7,9 @@ using System;
 /// </summary>
 public class EL_Foldout : Attribute
 {
-    private bool _isStart;
+    private readonly bool _isStart;
 
-    private string _name;
+    private readonly string _name;
 
     private bool _isOpen = true;
     public EL_Foldout(bool isStart, string name = "")

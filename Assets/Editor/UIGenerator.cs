@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class UIGenerator
 {
-    private static BindingFlags flag = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly;
+    private static readonly BindingFlags Flag = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly;
     /// <summary>
     /// 生成Button
     /// </summary>
@@ -18,15 +18,15 @@ public class UIGenerator
     {
         Action click = (Action)Delegate.CreateDelegate(typeof(Action), ins, method);
 
-        Action<GUIStyle, GUILayoutOption[]> button = (GUIStyle style, GUILayoutOption[] options) =>
+        void Button(GUIStyle style, GUILayoutOption[] options)
         {
             if (GUILayout.Button(buttonName, style, options))
             {
                 click();
             }
-        };
+        }
 
-        return button;
+        return Button;
     }
 
     /// <summary>
@@ -36,22 +36,27 @@ public class UIGenerator
     /// <returns></returns>
     public static Action<GUIStyle, GUILayoutOption[]> GenerateLabel(Func<string> labelName)
     {
-        Action<GUIStyle, GUILayoutOption[]> label = (GUIStyle style, GUILayoutOption[] options) =>
+        void Label(GUIStyle style, GUILayoutOption[] options)
         {
             GUILayout.Label(labelName(), style, options);
-        };
+        }
 
-        return label;
+        return Label;
     }
 
     /// <summary>
     /// 生成TextField
     /// </summary>
-    /// <param name="res">输入参数字段</param>
+    /// <param name="name"></param>
+    /// <param name="res"></param>
+    /// <param name="obj"></param>
+    /// <param name="width"></param>
+    /// <param name="isPercent"></param>
+    /// <param name="doubleLine"></param>
     /// <returns></returns>
     public static Action<GUIStyle, GUILayoutOption[]> GenerateInput(string name, string res, EditorWindow obj, int width, bool isPercent = true, bool doubleLine = false)
     {
-        Action<GUIStyle, GUILayoutOption[]> input = (GUIStyle style, GUILayoutOption[] options) =>
+        void Input(GUIStyle style, GUILayoutOption[] options)
         {
             if (doubleLine)
             {
@@ -87,28 +92,36 @@ public class UIGenerator
                     EditorGUILayout.EndHorizontal();
                 }
             }
-        };
+        }
 
-        return input;
+        return Input;
     }
 
     /// <summary>
-    /// 绘制texture
+    /// 绘制object
     /// </summary>
-    /// <param name="texture"></param>
+    /// <param name="name"></param>
+    /// <param name="obj"></param>
+    /// <typeparam name="T"></typeparam>
     /// <returns></returns>
     public static Action<GUIStyle, GUILayoutOption[]> GenerateObject<T>(string name, T obj) where T : UnityEngine.Object
     {
-        Action<GUIStyle, GUILayoutOption[]> action = (GUIStyle style, GUILayoutOption[] options) =>
+        void Action(GUIStyle style, GUILayoutOption[] options)
         {
             EditorGUILayout.BeginVertical(GetExtent(options));
             GUILayout.Label(name);
             obj = EditorGUILayout.ObjectField(obj, typeof(T), true, options) as T;
             EditorGUILayout.EndVertical();
-        };
-        return action;
+        }
+
+        return Action;
     }
 
+    /// <summary>
+    /// 获得扩展后的布局
+    /// </summary>
+    /// <param name="options"></param>
+    /// <returns></returns>
     private static GUILayoutOption[] GetExtent(GUILayoutOption[] options)
     {
         List<GUILayoutOption> list = new List<GUILayoutOption>();
@@ -116,14 +129,14 @@ public class UIGenerator
         {
             Type type = option.GetType();
             float num;
-            if (type.GetField("type", flag).GetValue(option).ToString() == "fixedHeight")
+            if (type.GetField("type", Flag)?.GetValue(option).ToString() == "fixedHeight")
             {
-                num = (float)type.GetField("value", flag).GetValue(option);
+                num = (float)type.GetField("value", Flag)?.GetValue(option)!;
                 list.Add(GUILayout.Height(num + 20f));
             }
-            else if (type.GetField("type", flag).GetValue(option).ToString() == "fixedWidth")
+            else if (type.GetField("type", Flag)?.GetValue(option).ToString() == "fixedWidth")
             {
-                num = (float)type.GetField("value", flag).GetValue(option);
+                num = (float)type.GetField("value", Flag)?.GetValue(option)!;
                 list.Add(GUILayout.Width(num + 6f));
             }
         }

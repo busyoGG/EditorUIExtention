@@ -38,15 +38,15 @@ public class Test : BaseEditor<Test>
     [E_Label, ES_Size(70, 70), EL_List(true, EL_ListType.Flex, true), EL_Foldout(false)]
     public List<string> labels = new List<string>() { "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa" };
 
-    [E_Label, ES_Size(70, 70), EL_List(true, EL_ListType.Verticle, false, true, 100, 200, ESPercent.Width)]
+    [E_Label, ES_Size(70, 70), EL_List(true, EL_ListType.Vertical, false, true, 100, 200, ESPercent.Width)]
     public string labelL1 = "测凉列表1";
     [E_Label, ES_Size(70, 100)]
     public string labelL2 = "测试列表2";
-    [E_Label, ES_Size(70, 70), EL_List(false, EL_ListType.Verticle, false)]
+    [E_Label, ES_Size(70, 70), EL_List(false, EL_ListType.Vertical, false)]
     public string labelL3 = "测试列表3";
 
     [E_Button("刷新界面")]
-    public void Refresh()
+    private void Refresh()
     {
         RefreshUIInit();
     }

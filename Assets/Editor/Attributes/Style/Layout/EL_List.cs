@@ -6,7 +6,7 @@ using UnityEngine;
 public enum EL_ListType
 {
     Horizontal,
-    Verticle,
+    Vertical,
     Flex
 }
 
@@ -15,21 +15,21 @@ public enum EL_ListType
 /// </summary>
 public class EL_List : Attribute
 {
-    private bool _isStart;
+    private readonly bool _isStart;
 
-    private EL_ListType _listType;
+    private readonly EL_ListType _listType;
 
-    private bool _scroll;
+    private readonly bool _scroll;
 
-    private float _width;
+    private readonly float _width;
 
-    private float _height;
+    private readonly float _height;
 
-    private ESPercent _percent;
+    private readonly ESPercent _percent;
 
     private Vector2 _scrollPosition = Vector2.zero;
 
-    private bool _isSingle;
+    private readonly bool _isSingle;
 
     public EL_List(bool isStart)
     {

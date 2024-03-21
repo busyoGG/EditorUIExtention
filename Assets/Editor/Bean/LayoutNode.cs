@@ -12,28 +12,26 @@ public struct UIListData
 
 public class LayoutNode
 {
-    public List<object> _list = new List<object>();
+    public readonly List<object> list = new List<object>();
 
-    //public List<LayoutNode> _children = new List<LayoutNode>();
+    public Action layout;
 
-    public Action _layout;
-
-    public LayoutNode parent { get; set; }
+    public LayoutNode Parent { get; private set; }
 
     public void AddUi(UIListData listData)
     {
-        _list.Add(listData);
+        list.Add(listData);
     }
 
     public void AddUi(LayoutNode listData)
     {
-        _list.Add(listData);
-        listData.parent = this;
+        list.Add(listData);
+        listData.Parent = this;
     }
 
     public void SetLayout(Action<GUIStyle, GUILayoutOption[]> layout, (Func<GUIStyle>, Func<GUILayoutOption[]>) layoutStyle)
     {
-        _layout = ()=> {
+        this.layout = ()=> {
             layout(layoutStyle.Item1(),layoutStyle.Item2());
         };
         //_layoutStyle = layoutStyle;

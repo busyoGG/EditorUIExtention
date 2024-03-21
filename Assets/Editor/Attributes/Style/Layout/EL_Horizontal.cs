@@ -7,7 +7,7 @@ using System;
 /// </summary>
 public class EL_Horizontal : Attribute
 {
-    private bool _isStart;
+    private readonly bool _isStart;
     public EL_Horizontal(bool isStart)
     {
         _isStart = isStart;

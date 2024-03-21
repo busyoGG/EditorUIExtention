@@ -1,14 +1,15 @@
 using System;
+using UnityEngine.Serialization;
 
 [Serializable]
 public struct SKeyValue<TKey,TValue>
 {
-    public TKey Key;
-    public TValue Value;
+    [FormerlySerializedAs("Key")] public TKey key;
+    [FormerlySerializedAs("Value")] public TValue value;
 
     public SKeyValue(TKey key, TValue value)
     {
-        Key = key;
-        Value = value;
+        this.key = key;
+        this.value = value;
     }
 }

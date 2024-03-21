@@ -1,7 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEditor.UI;
 using UnityEngine;
 
 [EName("UI²¼¾Ö")]
@@ -33,7 +31,7 @@ public class Layout : BaseEditor<Layout>
     public Texture foldout2;
 
 
-    [E_Texture, ES_Size(70, 70), EL_List(true, EL_ListType.Verticle, false)]
+    [E_Texture, ES_Size(70, 70), EL_List(true, EL_ListType.Vertical, false)]
     public Texture listV1;
     [E_Texture, ES_Size(70, 70)]
     public Texture listV2;
@@ -54,13 +52,13 @@ public class Layout : BaseEditor<Layout>
     [E_Texture, ES_Size(70, 70), EL_List(false)]
     public Texture listF3;
 
-    [E_Texture, ES_Size(70, 70), EL_List(true, EL_ListType.Verticle, false, true, 100, 100, ESPercent.Width)]
+    [E_Texture, ES_Size(70, 70), EL_List(true, EL_ListType.Vertical, false, true, 100, 100, ESPercent.Width)]
     public Texture listS1;
     [E_Texture, ES_Size(70, 70)]
     public Texture listS2;
     [E_Texture, ES_Size(70, 70), EL_List(false)]
     public Texture listS3;
 
-    [E_Texture, ES_Size(70, 70), EL_List(true, EL_ListType.Verticle, true, true, 100, 100, ESPercent.Width)]
+    [E_Texture, ES_Size(70, 70), EL_List(true, EL_ListType.Vertical, true, true, 100, 100, ESPercent.Width)]
     public List<Texture> singleList = new List<Texture>() { null, null, null };
 }

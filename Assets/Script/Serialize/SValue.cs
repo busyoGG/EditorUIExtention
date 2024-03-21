@@ -1,12 +1,13 @@
 using System;
+using UnityEngine.Serialization;
 
 [Serializable]
 public struct SValue<TValue>
 {
-    public TValue Value;
+    [FormerlySerializedAs("Value")] public TValue value;
 
     public SValue(TValue value)
     {
-        Value = value;
+        this.value = value;
     }
 }

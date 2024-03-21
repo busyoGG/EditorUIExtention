@@ -19,11 +19,11 @@ public class ES_Size : Attribute
     /// <summary>
     /// 大小
     /// </summary>
-    private Vector2 _size;
+    private readonly Vector2 _size;
     /// <summary>
     /// 是否比例制
     /// </summary>
-    private ESPercent _isPercent;
+    private readonly ESPercent _isPercent;
 
     public ES_Size(float x, float y, ESPercent percent = ESPercent.None)
     {

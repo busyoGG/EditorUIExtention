@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using Unity.VisualScripting;
@@ -15,12 +14,12 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
 
     private Type _type;
 
-    private float _totalWidth = 0;
-    private float curWidth = 0;
+    private float _totalWidth;
+    private float _curWidth;
 
     private Vector2 _scrollPosition = Vector2.zero;
 
-    private BindingFlags flag = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly;
+    private readonly BindingFlags _flag = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly;
 
 
     public void OnEnable()
@@ -38,10 +37,10 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
         Init();
     }
 
-    protected void InitWindow(string name)
+    private void InitWindow(string windowName)
     {
         T win = GetWindow<T>();
-        win.titleContent = new GUIContent(name);
+        win.titleContent = new GUIContent(windowName);
     }
 
     protected void RefreshUIInit()
@@ -56,14 +55,14 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
         Type type = GetType();
 
         //筛选包含编辑器拓展类型基类的对象
-        var members = type.GetMembers(flag)
+        var members = type.GetMembers(_flag)
                             .Select(m => new
                             {
                                 Member = m,
                                 Attribute = m.GetCustomAttributes(typeof(EBase), false).FirstOrDefault() as EBase
                             })
                             .Where(x => x.Attribute != null)
-                            .OrderBy(x => x.Attribute._lineNum);
+                            .OrderBy(x => x.Attribute.lineNum);
 
         LayoutNode node = _root;
         //遍历对象，创建生成函数
@@ -131,14 +130,9 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
 
 
             //定义Name和GetVal
-            Func<object> GetVal;
+            Func<object> getVal;
 
-            bool isField = false;
-
-            if (member.MemberType == MemberTypes.Field)
-            {
-                isField = true;
-            }
+            bool isField = member.MemberType == MemberTypes.Field;
 
             FieldInfo field = member as FieldInfo;
 
@@ -154,11 +148,8 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
                     int index = i;
                     if (isField)
                     {
-                        GetVal = () =>
-                        {
-                            return list[index];
-                        };
-                        node.AddUi(SetUI(member, ui, styles, field.Name + "_" + i, GetVal));
+                        getVal = () => list[index];
+                        node.AddUi(SetUI(member, ui, styles, field.Name + "_" + i, getVal));
                     }
                     else
                     {
@@ -170,7 +161,7 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
             {
                 if (isField)
                 {
-                    GetVal = () =>
+                    getVal = () =>
                     {
                         object res = field.GetValue(this);
                         if (res != null)
@@ -179,7 +170,7 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
                         }
                         return null;
                     };
-                    node.AddUi(SetUI(member, ui, styles, field.Name, GetVal));
+                    node.AddUi(SetUI(member, ui, styles, field.Name, getVal));
                 }
                 else
                 {
@@ -190,7 +181,7 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
 
             for (int i = 0; i < back; i++)
             {
-                node = node.parent;
+                node = node.Parent;
             }
         }
     }
@@ -206,9 +197,9 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
 
     private void Render(LayoutNode node)
     {
-        if (node._layout != null)
+        if (node.layout != null)
         {
-            node._layout();
+            node.layout();
         }
         else
         {
@@ -228,13 +219,9 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
     {
         if (ui == null) return null;
 
-        GUIStyle guiStyle = null;
-
-        Func<GUIStyle> setStyle = () =>
+        GUIStyle Style()
         {
-            guiStyle = GenerateStyle(ui);
-            //guiStyle.normal.textColor = Color.black;
-            //guiStyle.margin = new RectOffset(0,0,0,0);
+            GUIStyle guiStyle = GenerateStyle(ui);
 
             if (styles != null)
             {
@@ -249,9 +236,9 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
             }
 
             return guiStyle;
-        };
+        }
 
-        return setStyle;
+        return Style;
     }
 
     /// <summary>
@@ -263,7 +250,8 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
     private Func<GUILayoutOption[]> SetOption(object ui, List<object> styles = null)
     {
         if (ui == null) return null;
-        Func<GUILayoutOption[]> action = () =>
+
+        GUILayoutOption[] Action()
         {
             List<GUILayoutOption> options = new List<GUILayoutOption>();
             if (styles != null)
@@ -273,8 +261,7 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
                 {
                     switch (style)
                     {
-                        case ES_Size:
-                            ES_Size size = (ES_Size)style;
+                        case ES_Size size:
                             ESPercent percent = size.GetSizeType();
                             Vector2 vec2Size = size.GetSize();
 
@@ -287,10 +274,11 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
                     }
                 }
             }
-            return options.ToArray();
-        };
 
-        return action;
+            return options.ToArray();
+        }
+
+        return Action;
     }
 
     /// <summary>
@@ -309,12 +297,11 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
                 return LayoutGenerator.GenerateHorizontal(NormalRender(node));
             case EL_Vertical:
                 return LayoutGenerator.GenerateVertical(NormalRender(node));
-            case EL_List:
-                EL_List elList = (EL_List)layout;
+            case EL_List elList:
                 Action render = elList.ListType() == EL_ListType.Flex ? FlexRender(node, member) : NormalRender(node);
-                return LayoutGenerator.GenerateList(render, (EL_List)layout, this);
-            case EL_Foldout:
-                return LayoutGenerator.GenerateFoldout(NormalRender(node), (EL_Foldout)layout);
+                return LayoutGenerator.GenerateList(render, elList, this);
+            case EL_Foldout foldout:
+                return LayoutGenerator.GenerateFoldout(NormalRender(node), foldout);
         }
         return null;
     }
@@ -325,10 +312,10 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
     /// <param name="member"></param>
     /// <param name="ui"></param>
     /// <param name="styles"></param>
-    /// <param name="name"></param>
+    /// <param name="propName"></param>
     /// <param name="getVal"></param>
     /// <returns></returns>
-    private UIListData SetUI(MemberInfo member, object ui, List<object> styles, string name, Func<object> getVal)
+    private UIListData SetUI(MemberInfo member, object ui, List<object> styles, string propName, Func<object> getVal)
     {
         UIListData list = new UIListData();
         //创建ui
@@ -342,19 +329,20 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
             switch (ui)
             {
                 case E_Label:
-                    Func<string> labelName = () =>
+
+                    string LabelName()
                     {
                         return (string)getVal();
-                    };
-                    action = UIGenerator.GenerateLabel(labelName);
+                    }
+
+                    action = UIGenerator.GenerateLabel(LabelName);
                     break;
-                case E_Input:
-                    E_Input input = (E_Input)ui;
-                    action = UIGenerator.GenerateInput(name, (string)val,
+                case E_Input input:
+                    action = UIGenerator.GenerateInput(propName, (string)val,
                         this, input.GetWidth(), input.IsPercent(), input.IsDoubleLine());
                     break;
                 case E_Texture:
-                    action = UIGenerator.GenerateObject(name, (Texture)val);
+                    action = UIGenerator.GenerateObject(propName, (Texture)val);
                     break;
             }
 
@@ -368,8 +356,7 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
             Action<GUIStyle, GUILayoutOption[]> action = null;
             switch (ui)
             {
-                case E_Button:
-                    E_Button attr = (E_Button)ui;
+                case E_Button attr:
                     action = UIGenerator.GenerateButton(attr.GetName(), (MethodInfo)member, this);
                     break;
             }
@@ -385,7 +372,7 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
     /// <summary>
     /// 根据GUIStyle创建一个新的GUIStyle
     /// </summary>
-    /// <param name="styleDef"></param>
+    /// <param name="ui"></param>
     /// <returns></returns>
     private GUIStyle GenerateStyle(object ui)
     {
@@ -396,8 +383,10 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
                 layoutDef = new GUIStyle(GUI.skin.label);
                 return layoutDef;
             case E_Input:
-                layoutDef = new GUIStyle(GUI.skin.textField);
-                layoutDef.wordWrap = true;
+                layoutDef = new GUIStyle(GUI.skin.textField)
+                {
+                    wordWrap = true
+                };
                 return layoutDef;
             case E_Button:
                 layoutDef = new GUIStyle(GUI.skin.button);
@@ -418,13 +407,13 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
     /// <returns></returns>
     private Action NormalRender(LayoutNode node)
     {
-        Action action = () =>
+        void Action()
         {
-            foreach (var ui in node._list)
+            foreach (var ui in node.list)
             {
-                if (ui is LayoutNode)
+                if (ui is LayoutNode layoutNode)
                 {
-                    Render((LayoutNode)ui);
+                    Render(layoutNode);
                 }
                 else
                 {
@@ -432,8 +421,9 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
                     data.action(data.style(), data.options());
                 }
             }
-        };
-        return action;
+        }
+
+        return Action;
     }
 
     /// <summary>
@@ -444,10 +434,10 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
     /// <returns></returns>
     private Action FlexRender(LayoutNode node, MemberInfo member)
     {
-        Action action = () =>
+        void Action()
         {
             int i = 0;
-            foreach (var ui in node._list)
+            foreach (var ui in node.list)
             {
                 int index = i;
 
@@ -460,32 +450,34 @@ public class BaseEditor<T> : EditorWindow where T : EditorWindow
 
                 if (index == 0)
                 {
-                    curWidth = space;
+                    _curWidth = space;
                 }
 
-                curWidth += vec2Size.x + space;
+                _curWidth += vec2Size.x + space;
 
                 _totalWidth = position.width;
 
-                if (index < node._list.Count && curWidth > _totalWidth)
+                if (index < node.list.Count && _curWidth > _totalWidth)
                 {
-                    curWidth = vec2Size.x + space * 2;
+                    _curWidth = vec2Size.x + space * 2;
                     EditorGUILayout.EndHorizontal();
                     EditorGUILayout.BeginHorizontal(new GUIStyle(GUI.skin.box));
                 }
 
-                if (ui is LayoutNode)
+                if (ui is LayoutNode layoutNode)
                 {
-                    Render((LayoutNode)ui);
+                    Render(layoutNode);
                 }
                 else
                 {
                     UIListData data = (UIListData)ui;
                     data.action(data.style(), data.options());
                 }
+
                 i++;
             }
-        };
-        return action;
+        }
+
+        return Action;
     }
 }

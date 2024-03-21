@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class ES_Color : Attribute
 {
-    private Color _color;
+    private readonly Color _color;
 
     public ES_Color(float r, float g, float b ,float a = 1)
     {

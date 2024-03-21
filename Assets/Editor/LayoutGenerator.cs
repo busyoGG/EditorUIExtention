@@ -75,7 +75,7 @@ public class LayoutGenerator
             Vector2 size = CalSize(elList.GetPercent(), new Vector2(elList.Width(), elList.Height()), obj);
             switch (elList.ListType())
             {
-                case EL_ListType.Verticle:
+                case EL_ListType.Vertical:
                     if (elList.Scroll())
                     {
                         elList.ScrollPosition(EditorGUILayout.BeginScrollView(elList.ScrollPosition(), style, GUILayout.Height(size.y), GUILayout.Width(size.x)));
