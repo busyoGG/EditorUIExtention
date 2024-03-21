@@ -98,15 +98,14 @@ public class SList<TValue> : ISerializationCallbackReceiver, IList<TValue>
 
     public void CopyTo(TValue[] array, int arrayIndex)
     {
-        SList<TValue> newList = new SList<TValue>();
-        for (var index = 0; index < list.Count; index++)
+        var numKeys = list.Count;
+        if (array.Length - arrayIndex < numKeys)
+            throw new ArgumentException("arrayIndex");
+        for (var i = 0; i < numKeys; i++, arrayIndex++)
         {
-            if (index < arrayIndex) continue;
-            var data = list[index];
-            newList.Add(data.value);
+            var entry = list[i];
+            array[arrayIndex] = entry.value;
         }
-
-        array.AddRange(newList);
     }
 
     public bool Remove(TValue item)
