@@ -176,18 +176,6 @@ namespace EditorUIExtension
                 {
                     if (isField)
                     {
-                        // getVal = () =>
-                        // {
-                        //     object res = field.GetValue(this);
-                        //     if (res != null)
-                        //     {
-                        //         return res;
-                        //     }
-                        //
-                        //     return null;
-                        // };
-
-                        Type fieldType = field.GetType();
                         getVal = (GetFieldDelegate)Delegate.CreateDelegate(typeof(GetFieldDelegate), field, "GetValue",
                             false);
                         setVal = (SetFieldDelegate)Delegate.CreateDelegate(typeof(SetFieldDelegate), field, "SetValue",
@@ -422,9 +410,12 @@ namespace EditorUIExtension
                     E_Options options = member.GetCustomAttribute<E_Options>();
 
                     action = UIGenerator.GenerateRadio(options.GetOptions(), (int)val, change);
-
+                    
                     break;
                 case EType.Toggle:
+
+                    action = UIGenerator.GenerateToggle(subName, (bool)val, change);
+                    
                     break;
             }
 

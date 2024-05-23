@@ -155,6 +155,13 @@ namespace EditorUIExtension
             return Input;
         }
 
+        /// <summary>
+        /// 生成单选框
+        /// </summary>
+        /// <param name="selections"></param>
+        /// <param name="selection"></param>
+        /// <param name="setVal"></param>
+        /// <returns></returns>
         public static Action<GUIStyle, GUILayoutOption[]> GenerateRadio(string[] selections, int selection,
             Action<object> setVal)
         {
@@ -171,6 +178,24 @@ namespace EditorUIExtension
             }
 
             return Radio;
+        }
+
+        /// <summary>
+        /// 生成选择框
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="isSelect"></param>
+        /// <param name="setVal"></param>
+        /// <returns></returns>
+        public static Action<GUIStyle, GUILayoutOption[]> GenerateToggle(string name, bool isSelect,Action<object> setVal)
+        {
+            void Toggle(GUIStyle style, GUILayoutOption[] options)
+            {
+                isSelect = GUILayout.Toggle(isSelect, name);
+                setVal(isSelect);
+            }
+
+            return Toggle;
         }
 
         /// <summary>

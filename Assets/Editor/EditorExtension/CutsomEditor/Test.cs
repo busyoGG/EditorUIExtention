@@ -3,7 +3,7 @@ using UnityEditor;
 using System.Collections.Generic;
 using EditorUIExtension;
 
-[E_Name("²âÊÔ´°¿Ú")]
+[E_Name("æµ‹è¯•çª—å£")]
 public class Test : BaseEditor<Test>
 {
     [MenuItem("Test/Test1")]
@@ -13,41 +13,41 @@ public class Test : BaseEditor<Test>
     }
 
     [E_Editor(EType.Label), EL_Horizontal(true)]
-    public string label = "²âÊÔLabel";
+    public string label = "æµ‹è¯•Label";
 
-    [E_Editor(EType.Input), ES_Size(20, 40, ESPercent.Width),E_Name("²âÊÔInput")]
+    [E_Editor(EType.Input), ES_Size(20, 40, ESPercent.Width),E_Name("æµ‹è¯•Input")]
     public string strInput;
 
     [E_Editor(EType.Button), ES_Size(20, 40, ESPercent.Width), EL_Horizontal(false)]
     public void ShowHello()
     {
-        //Debug.Log("µã»÷²âÊÔ°´Å¥");
-        //label = "ĞŞ¸Älabel";
+        //Debug.Log("ç‚¹å‡»æµ‹è¯•æŒ‰é’®");
+        //label = "ä¿®æ”¹label";
         // tex.Add(null);
-        Debug.Log("Ñ¡ÖĞµÄÑ¡ÏîË÷Òı ==> " + _radioSelection);
-        Debug.Log("»¬¶¯ÌõÖµ ==> " + _testSlider);
-        Debug.Log("ÊäÈë¿ò ==> " + strInput);
+        Debug.Log("æ˜¯å¦é€‰æ‹©æ¡† ==> " + _isToggle);
+        Debug.Log("æ»‘åŠ¨æ¡å€¼ ==> " + _testSlider);
+        Debug.Log("è¾“å…¥æ¡† ==> " + strInput);
         // Refresh();
     }
 
     [E_Editor(EType.Label), EL_Horizontal(true)]
-    public string label2 = "²âÊÔLabel2";
+    public string label2 = "æµ‹è¯•Label2";
 
     [E_Editor(EType.Texture), ES_Size(70, 70), EL_Horizontal(false)]
     public Texture texture;
 
-    [E_Editor(EType.Texture), ES_Size(70, 70), EL_Foldout(true, "²âÊÔÕÛµş"), EL_List(true, EL_ListType.Flex, true, true, 100, 200, ESPercent.Width)]
+    [E_Editor(EType.Texture), ES_Size(70, 70), EL_Foldout(true, "æµ‹è¯•æŠ˜å "), EL_List(true, EL_ListType.Flex, true, true, 100, 200, ESPercent.Width)]
     public List<Texture> tex = new List<Texture>() { null, null, null, null, null, null };
 
     [E_Editor(EType.Label), ES_Size(70, 70), EL_List(true, EL_ListType.Flex, true), EL_Foldout(false)]
     public List<string> labels = new List<string>() { "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa", "aaaaaaaa" };
 
     [E_Editor(EType.Label), ES_Size(70, 70), EL_List(true, EL_ListType.Vertical, false, true, 100, 200, ESPercent.Width)]
-    public string labelL1 = "²âÁ¹ÁĞ±í1";
+    public string labelL1 = "æµ‹å‡‰åˆ—è¡¨1";
     [E_Editor(EType.Label), ES_Size(70, 100)]
-    public string labelL2 = "²âÊÔÁĞ±í2";
+    public string labelL2 = "æµ‹è¯•åˆ—è¡¨2";
     [E_Editor(EType.Label), ES_Size(70, 70), EL_List(false, EL_ListType.Vertical, false)]
-    public string labelL3 = "²âÊÔÁĞ±í3";
+    public string labelL3 = "æµ‹è¯•åˆ—è¡¨3";
 
     [E_Editor(EType.Button)]
     private void Refresh()
@@ -55,12 +55,15 @@ public class Test : BaseEditor<Test>
         RefreshUIInit();
     }
 
-    [E_Editor(EType.Enum),E_Name("²âÊÔEnum"),E_Width(20,WidthType.Percent),E_Wrap(false)]
+    [E_Editor(EType.Enum),E_Name("æµ‹è¯•Enum"),E_Width(20,WidthType.Percent),E_Wrap(false)]
     public EType _testType = EType.Enum;
 
-    [E_Editor(EType.Slider),E_Name("²âÊÔSlider"),E_Range(-10,10),E_DataType(DataType.Int)]
+    [E_Editor(EType.Slider),E_Name("æµ‹è¯•Slider"),E_Range(-10,10),E_DataType(DataType.Int)]
     public float _testSlider = 0;
 
-    [E_Editor(EType.Radio),E_Options("Ñ¡Ïî1","Ñ¡Ïî2","Ñ¡Ïî3")]
+    [E_Editor(EType.Radio),E_Options("é€‰é¡¹1","é€‰é¡¹2","é€‰é¡¹3")]
     public int _radioSelection = 0;
+
+    [E_Editor(EType.Toggle),E_Name("æ˜¯å¦é€‰æ‹©æ¡†")]
+    public bool _isToggle = false;
 }
