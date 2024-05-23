@@ -17,15 +17,10 @@ public class Launcher : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        //_dic.Add(1, "²âÊÔ1");
-        //_dic.Add(2, "²âÊÔ2");
+        //_dic.Add(1, "æµ‹è¯•1");
+        //_dic.Add(2, "æµ‹è¯•2");
 
-        foreach (var data in this.dic)
-        {
-            Debug.Log("Êý¾Ý:" + data.Key + "-" + data.Value);
-        }
-        Dictionary<Tabs, string> dictionary = this.dic.ToDictionary();
-        Debug.Log(dictionary[Tabs.Tab1]);
+        
     }
 
     // Update is called once per frame
