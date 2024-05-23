@@ -209,10 +209,10 @@ namespace EditorUIExtension
             }
         }
 
-        public static void SetListValue<T>(List<T> list, int index, object value)
+        public static void SetListValue<TValue>(List<TValue> list, int index, object value)
         {
             // 转换 object 类型的值为 T 类型
-            T convertedValue = (T)value;
+            TValue convertedValue = (TValue)value;
 
             // 设置列表中的值
             list[index] = convertedValue;
