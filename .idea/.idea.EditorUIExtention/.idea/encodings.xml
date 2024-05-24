@@ -3,6 +3,7 @@
   <component name="Encoding" addBOMForNewFiles="with BOM under Windows, with no BOM otherwise">
     <file url="file://$PROJECT_DIR$/Assets/Editor/Attributes/Style/Layout/EL_Foldout.cs" charset="GBK" />
     <file url="file://$PROJECT_DIR$/Assets/Editor/Attributes/Style/Layout/EL_Horizontal.cs" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/Assets/Editor/EditorExtension/CutsomEditor/Test.cs" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Assets/Editor/UIGenerator.cs" charset="GBK" />
     <file url="file://$PROJECT_DIR$/Assets/Script/Launcher.cs" charset="GBK" />
     <file url="file://$PROJECT_DIR$/../../../software/scoop/apps/obs-studio/CheckSecret.py" charset="UTF-8" />

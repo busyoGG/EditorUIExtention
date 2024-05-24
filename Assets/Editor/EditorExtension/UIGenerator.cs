@@ -56,16 +56,16 @@ namespace EditorUIExtension
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         public static Action<GUIStyle, GUILayoutOption[]> GenerateEnum<T>(string name, T def, Action<object> setVal,
-            EditorWindow obj,float width, bool isPercent = true, bool doubleLine = false) where T : Enum
+            EditorWindow obj, float width, bool isPercent = true, bool doubleLine = false) where T : Enum
         {
             void EnumPop(GUIStyle style, GUILayoutOption[] options)
             {
                 Action generator = () =>
                 {
-                    def = (T)EditorGUILayout.EnumPopup(def, style);
+                    def = (T)EditorGUILayout.EnumPopup(def);
                     setVal(def);
                 };
-                GenerateLabelAndInputField(name, generator, obj, width, options, isPercent, doubleLine);
+                GenerateLabelAndInputField(name, generator, obj, width, style,options, isPercent, doubleLine);
             }
 
             return EnumPop;
@@ -91,10 +91,10 @@ namespace EditorUIExtension
             {
                 Action generator = () =>
                 {
-                    duration = EditorGUILayout.Slider(duration, start, end);
+                    duration = EditorGUILayout.Slider(duration, start, end, options);
                     setVal(duration);
                 };
-                GenerateLabelAndInputField(name, generator, obj, width, options, isPercent, doubleLine);
+                GenerateLabelAndInputField(name, generator, obj, width,style, options, isPercent, doubleLine);
             }
 
             return Slider;
@@ -120,10 +120,10 @@ namespace EditorUIExtension
             {
                 Action generator = () =>
                 {
-                    duration = EditorGUILayout.IntSlider(duration, start, end);
+                    duration = EditorGUILayout.IntSlider(duration, start, end, options);
                     setVal(duration);
                 };
-                GenerateLabelAndInputField(name, generator, obj, width, options, isPercent, doubleLine);
+                GenerateLabelAndInputField(name, generator, obj, width,style, options, isPercent, doubleLine);
             }
 
             return Slider;
@@ -146,10 +146,10 @@ namespace EditorUIExtension
             {
                 Action generator = () =>
                 {
-                    res = EditorGUILayout.TextField(res, style);
+                    res = EditorGUILayout.TextField(res);
                     setVal(res);
                 };
-                GenerateLabelAndInputField(name, generator, obj, width, options, isPercent, doubleLine);
+                GenerateLabelAndInputField(name, generator, obj, width, style,options, isPercent, doubleLine);
             }
 
             return Input;
@@ -169,11 +169,13 @@ namespace EditorUIExtension
             {
                 for (int i = 0; i < selections.Length; i++)
                 {
-                    if (GUILayout.Toggle(selection == i, selections[i]))
+                    EditorGUILayout.BeginVertical(style,options);
+                    if (GUILayout.Toggle(selection == i, selections[i], options))
                     {
                         selection = i;
                         setVal(i);
                     }
+                    EditorGUILayout.EndVertical();
                 }
             }
 
@@ -187,11 +189,14 @@ namespace EditorUIExtension
         /// <param name="isSelect"></param>
         /// <param name="setVal"></param>
         /// <returns></returns>
-        public static Action<GUIStyle, GUILayoutOption[]> GenerateToggle(string name, bool isSelect,Action<object> setVal)
+        public static Action<GUIStyle, GUILayoutOption[]> GenerateToggle(string name, bool isSelect,
+            Action<object> setVal)
         {
             void Toggle(GUIStyle style, GUILayoutOption[] options)
             {
-                isSelect = GUILayout.Toggle(isSelect, name);
+                EditorGUILayout.BeginVertical(style,options);
+                isSelect = GUILayout.Toggle(isSelect, name, options);
+                EditorGUILayout.EndVertical();
                 setVal(isSelect);
             }
 
@@ -210,7 +215,7 @@ namespace EditorUIExtension
         {
             void Action(GUIStyle style, GUILayoutOption[] options)
             {
-                EditorGUILayout.BeginVertical(GetExtent(options));
+                EditorGUILayout.BeginVertical(style,GetExtent(options));
                 GUILayout.Label(name);
                 obj = EditorGUILayout.ObjectField(obj, typeof(T), true, options) as T;
                 setVal(obj);
@@ -256,22 +261,22 @@ namespace EditorUIExtension
         /// <param name="width"></param>
         /// <param name="isPercent"></param>
         /// <param name="doubleLine"></param>
-        private static void GenerateLabelAndInputField(string name, Action action, EditorWindow obj, float width
-            , GUILayoutOption[] options, bool isPercent = true, bool doubleLine = false)
+        private static void GenerateLabelAndInputField(string name, Action action, EditorWindow obj, float width,
+            GUIStyle style, GUILayoutOption[] options, bool isPercent = true, bool doubleLine = false)
 
         {
             if (doubleLine)
             {
                 if (isPercent)
                 {
-                    EditorGUILayout.BeginVertical(options);
+                    EditorGUILayout.BeginVertical(style,options);
                     GUILayout.Label(name, GUILayout.Width(obj.position.width * width / 100));
                     action();
                     EditorGUILayout.EndVertical();
                 }
                 else
                 {
-                    EditorGUILayout.BeginVertical();
+                    EditorGUILayout.BeginVertical(style,options);
                     GUILayout.Label(name, GUILayout.Width(width));
                     action();
                     EditorGUILayout.EndVertical();
@@ -281,14 +286,14 @@ namespace EditorUIExtension
             {
                 if (isPercent)
                 {
-                    EditorGUILayout.BeginHorizontal(options);
+                    EditorGUILayout.BeginHorizontal(style,options);
                     GUILayout.Label(name, GUILayout.Width(obj.position.width * width / 100));
                     action();
                     EditorGUILayout.EndHorizontal();
                 }
                 else
                 {
-                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.BeginHorizontal(style,options);
                     GUILayout.Label(name, GUILayout.Width(width));
                     action();
                     EditorGUILayout.EndHorizontal();

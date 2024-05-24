@@ -212,6 +212,8 @@ namespace EditorUIExtension
             //panel.margin = new RectOffset(0, 0, 0, 0);
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition, GUIStyle.none, GUIStyle.none);
             Render(_root);
+            //手动拓展部分
+            CustomUI();
             EditorGUILayout.EndScrollView();
         }
 
@@ -247,10 +249,12 @@ namespace EditorUIExtension
                     //创建GUIStyle
                     foreach (var style in styles)
                     {
-                        //switch (style)
-                        //{
-
-                        //}
+                        switch (style)
+                        {
+                            case ES_Color color:
+                                guiStyle.normal.background = MakeTex(1,1,color.GetColor(),1);
+                                break;
+                        }
                     }
                 }
 
@@ -258,6 +262,41 @@ namespace EditorUIExtension
             }
 
             return Style;
+        }
+
+        // 创建一个单色纹理的方法
+        private Texture2D MakeTex(int width, int height, Color color,int borderRadius = 0)
+        {
+            Color[] pixels = new Color[width * height];
+            // Calculate radius
+            float r = borderRadius;
+            float rSquared = r * r;
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    // Corners
+                    bool inCircle1 = (x - r) * (x - r) + (y - r) * (y - r) <= rSquared; // Bottom left
+                    bool inCircle2 = (x - (width - r)) * (x - (width - r)) + (y - r) * (y - r) <= rSquared; // Bottom right
+                    bool inCircle3 = (x - r) * (x - r) + (y - (height - r)) * (y - (height - r)) <= rSquared; // Top left
+                    bool inCircle4 = (x - (width - r)) * (x - (width - r)) + (y - (height - r)) * (y - (height - r)) <= rSquared; // Top right
+
+                    if ((x >= r && x < width - r) || (y >= r && y < height - r) || inCircle1 || inCircle2 || inCircle3 || inCircle4)
+                    {
+                        pixels[y * width + x] = color;
+                    }
+                    else
+                    {
+                        pixels[y * width + x] = Color.clear; // Transparent
+                    }
+                }
+            }
+
+            Texture2D result = new Texture2D(width, height);
+            result.SetPixels(pixels);
+            result.Apply();
+            return result;
         }
 
         /// <summary>
@@ -410,12 +449,12 @@ namespace EditorUIExtension
                     E_Options options = member.GetCustomAttribute<E_Options>();
 
                     action = UIGenerator.GenerateRadio(options.GetOptions(), (int)val, change);
-                    
+
                     break;
                 case EType.Toggle:
 
                     action = UIGenerator.GenerateToggle(subName, (bool)val, change);
-                    
+
                     break;
             }
 
@@ -442,18 +481,25 @@ namespace EditorUIExtension
                         case EType.Label:
                             layoutDef = new GUIStyle(EditorStyles.label);
                             return layoutDef;
-                        case EType.Input:
-                            layoutDef = new GUIStyle(EditorStyles.textField)
-                            {
-                                wordWrap = true
-                            };
-                            return layoutDef;
+                        // case EType.Input:
+                        //     layoutDef = new GUIStyle(EditorStyles.textField)
+                        //     {
+                        //         wordWrap = true
+                        //     };
+                        //     return layoutDef;
                         case EType.Button:
                             layoutDef = new GUIStyle(GUI.skin.button);
                             return layoutDef;
-                        case EType.Enum:
-                            layoutDef = new GUIStyle(EditorStyles.popup);
-                            return layoutDef;
+                        // case EType.Enum:
+                        //     layoutDef = new GUIStyle(EditorStyles.popup);
+                        //     return layoutDef;
+                        // case EType.Slider:
+                        //     layoutDef = new GUIStyle(GUI.skin.horizontalSlider);
+                        //     return layoutDef;
+                        // case EType.Radio:
+                        // case EType.Toggle:
+                        //     layoutDef = new GUIStyle(EditorStyles.toggle);
+                        //     return layoutDef;
                     }
 
                     break;
@@ -546,6 +592,14 @@ namespace EditorUIExtension
             }
 
             return Action;
+        }
+
+        /// <summary>
+        /// 手动拓展UI
+        /// </summary>
+        protected virtual void CustomUI()
+        {
+            
         }
     }
 }

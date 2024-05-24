@@ -12,7 +12,7 @@ public class Test : BaseEditor<Test>
         GetWindow<Test>().Show();
     }
 
-    [E_Editor(EType.Label), EL_Horizontal(true)]
+    [E_Editor(EType.Label), EL_Horizontal(true),ES_Color(0,0.1f,0,1)]
     public string label = "测试Label";
 
     [E_Editor(EType.Input), ES_Size(20, 40, ESPercent.Width),E_Name("测试Input")]
