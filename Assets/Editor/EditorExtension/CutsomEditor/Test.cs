@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using EditorUIExtension;
 
 [E_Name("测试窗口")]
-public class Test : BaseEditor<Test>
+public class Test : BaseEditorIMGUI<Test>
 {
     [MenuItem("Test/Test1")]
     public static void ShowWindow()
@@ -12,7 +12,7 @@ public class Test : BaseEditor<Test>
         GetWindow<Test>().Show();
     }
 
-    [E_Editor(EType.Label), EL_Horizontal(true),ES_Color(0,0.1f,0,1)]
+    [E_Editor(EType.Label), EL_Horizontal(true),ES_BgColor(0,0.1f,0,1)]
     public string label = "测试Label";
 
     [E_Editor(EType.Input), ES_Size(20, 40, ESPercent.Width),E_Name("测试Input")]
@@ -33,10 +33,11 @@ public class Test : BaseEditor<Test>
     [E_Editor(EType.Label), EL_Horizontal(true)]
     public string label2 = "测试Label2";
 
-    [E_Editor(EType.Texture), ES_Size(70, 70), EL_Horizontal(false)]
+    [E_Editor(EType.Object), EL_Horizontal(false),E_DataType(DataType.Texture)]
     public Texture texture;
 
-    [E_Editor(EType.Texture), ES_Size(70, 70), EL_Foldout(true, "测试折叠"), EL_List(true, EL_ListType.Flex, true, true, 100, 200, ESPercent.Width)]
+    [E_DataType(DataType.Texture)]
+    [E_Editor(EType.Object), ES_Size(70, 70), EL_Foldout(true, "测试折叠"), EL_List(true, EL_ListType.Flex, true, true, 100, 200, ESPercent.Width)]
     public List<Texture> tex = new List<Texture>() { null, null, null, null, null, null };
 
     [E_Editor(EType.Label), ES_Size(70, 70), EL_List(true, EL_ListType.Flex, true), EL_Foldout(false)]
@@ -55,7 +56,7 @@ public class Test : BaseEditor<Test>
         RefreshUIInit();
     }
 
-    [E_Editor(EType.Enum),E_Name("测试Enum"),E_Width(20,WidthType.Percent),E_Wrap(false)]
+    [E_Editor(EType.Enum),E_Name("测试Enum"),E_Width(20,WidthType.Percent),E_Wrap]
     public EType _testType = EType.Enum;
 
     [E_Editor(EType.Slider),E_Name("测试Slider"),E_Range(-10,10),E_DataType(DataType.Int)]

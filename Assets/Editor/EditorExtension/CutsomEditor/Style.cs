@@ -6,7 +6,7 @@ using UnityEditor.UI;
 using UnityEngine;
 
 [E_Name("UI???")]
-public class Style : BaseEditor<Style>
+public class Style : BaseEditorIMGUI<Style>
 {
     [MenuItem("Test/Style")]
     public static void ShowWindow()
@@ -14,15 +14,15 @@ public class Style : BaseEditor<Style>
         GetWindow<Style>().Show();
     }
 
-    [E_Editor(EType.Texture), ES_Size(70, 70)]
+    [E_Editor(EType.Object), ES_Size(70, 70)]
     public Texture size1;
 
-    [E_Editor(EType.Texture), ES_Size(70, 10, ESPercent.Height)]
+    [E_Editor(EType.Object), ES_Size(70, 10, ESPercent.Height)]
     public Texture size2;
 
-    [E_Editor(EType.Texture), ES_Size(50, 70, ESPercent.Width)]
+    [E_Editor(EType.Object), ES_Size(50, 70, ESPercent.Width)]
     public Texture size3;
 
-    [E_Editor(EType.Texture), ES_Size(50, 10, ESPercent.All)]
+    [E_Editor(EType.Object), ES_Size(50, 10, ESPercent.All)]
     public Texture size4;
 }

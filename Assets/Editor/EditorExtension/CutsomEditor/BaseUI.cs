@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEngine;
 
 [E_Name("»ù´¡UI")]
-public class BaseUI : BaseEditor<BaseUI>
+public class BaseUI : BaseEditorIMGUI<BaseUI>
 {
     [MenuItem("Test/BaseUI")]
     public static void ShowWindow()
@@ -20,7 +20,7 @@ public class BaseUI : BaseEditor<BaseUI>
     [E_Editor(EType.Input)]
     public string strInput;
 
-    [E_Editor(EType.Texture)]
+    [E_Editor(EType.Object)]
     public Texture texture;
 
     [E_Editor(EType.Button)]

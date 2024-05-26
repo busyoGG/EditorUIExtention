@@ -5,11 +5,11 @@ using UnityEngine;
 
 namespace EditorUIExtension
 {
-    public class ES_Color : Attribute
+    public class ES_BorderColor : Attribute
     {
         private readonly Color _color;
 
-        public ES_Color(float r, float g, float b ,float a = 1)
+        public ES_BorderColor(float r, float g, float b ,float a = 1)
         {
             _color = new Color(r, g, b, a);
         }

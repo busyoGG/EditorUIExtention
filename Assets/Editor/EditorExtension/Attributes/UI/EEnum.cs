@@ -5,7 +5,7 @@ namespace EditorUIExtension
         Button,
         Input,
         Label,
-        Texture,
+        Object,
         Enum,
         Slider,
         Toggle,

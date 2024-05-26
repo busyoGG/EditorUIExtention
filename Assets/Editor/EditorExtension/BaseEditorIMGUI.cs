@@ -6,6 +6,7 @@ using EditorUIExtension;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace EditorUIExtension
 {
@@ -13,7 +14,11 @@ namespace EditorUIExtension
 
     public delegate object GetFieldDelegate(object target);
 
-    public class BaseEditor<T> : EditorWindow where T : EditorWindow
+    /// <summary>
+    /// IMGUI 方式实现的 Editor UI 拓展框架
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class BaseEditorIMGUI<T> : EditorWindow where T : EditorWindow
     {
         private bool _isInited = false;
 
@@ -67,7 +72,7 @@ namespace EditorUIExtension
                 .Select(m => new
                 {
                     Member = m,
-                    Attribute = m.GetCustomAttributes(typeof(EBase), false).FirstOrDefault() as EBase
+                    Attribute = m.GetCustomAttribute<EBase>()
                 })
                 .Where(x => x.Attribute != null)
                 .OrderBy(x => x.Attribute.lineNum);
@@ -251,8 +256,8 @@ namespace EditorUIExtension
                     {
                         switch (style)
                         {
-                            case ES_Color color:
-                                guiStyle.normal.background = MakeTex(1,1,color.GetColor(),1);
+                            case ES_BgColor color:
+                                guiStyle.normal.background = MakeTex(1, 1, color.GetColor(), 1);
                                 break;
                         }
                     }
@@ -265,7 +270,7 @@ namespace EditorUIExtension
         }
 
         // 创建一个单色纹理的方法
-        private Texture2D MakeTex(int width, int height, Color color,int borderRadius = 0)
+        private Texture2D MakeTex(int width, int height, Color color, int borderRadius = 0)
         {
             Color[] pixels = new Color[width * height];
             // Calculate radius
@@ -278,11 +283,15 @@ namespace EditorUIExtension
                 {
                     // Corners
                     bool inCircle1 = (x - r) * (x - r) + (y - r) * (y - r) <= rSquared; // Bottom left
-                    bool inCircle2 = (x - (width - r)) * (x - (width - r)) + (y - r) * (y - r) <= rSquared; // Bottom right
-                    bool inCircle3 = (x - r) * (x - r) + (y - (height - r)) * (y - (height - r)) <= rSquared; // Top left
-                    bool inCircle4 = (x - (width - r)) * (x - (width - r)) + (y - (height - r)) * (y - (height - r)) <= rSquared; // Top right
+                    bool inCircle2 =
+                        (x - (width - r)) * (x - (width - r)) + (y - r) * (y - r) <= rSquared; // Bottom right
+                    bool inCircle3 =
+                        (x - r) * (x - r) + (y - (height - r)) * (y - (height - r)) <= rSquared; // Top left
+                    bool inCircle4 = (x - (width - r)) * (x - (width - r)) + (y - (height - r)) * (y - (height - r)) <=
+                                     rSquared; // Top right
 
-                    if ((x >= r && x < width - r) || (y >= r && y < height - r) || inCircle1 || inCircle2 || inCircle3 || inCircle4)
+                    if ((x >= r && x < width - r) || (y >= r && y < height - r) || inCircle1 || inCircle2 ||
+                        inCircle3 || inCircle4)
                     {
                         pixels[y * width + x] = color;
                     }
@@ -396,7 +405,9 @@ namespace EditorUIExtension
             bool percent = eWidth == null || eWidth.GetWidthType() == WidthType.Percent;
 
             E_Wrap eWrap = member.GetCustomAttribute<E_Wrap>();
-            bool isWrap = eWrap == null || eWrap.GetWrap();
+            bool isWrap = eWrap != null;
+
+            E_DataType dataType;
 
             // ----- 额外参数 ----- end
 
@@ -416,8 +427,25 @@ namespace EditorUIExtension
                 case EType.Input:
                     action = UIGenerator.GenerateInput(subName, (string)val, change, this, width, percent, isWrap);
                     break;
-                case EType.Texture:
-                    action = UIGenerator.GenerateObject(subName, (Texture)val, change);
+                case EType.Object:
+                    dataType = member.GetCustomAttribute<E_DataType>();
+                    if (dataType != null)
+                    {
+                        switch (dataType.GetDataType())
+                        {
+                            case DataType.Texture:
+                                action = UIGenerator.GenerateObject(subName, (Texture)val, change);
+                                break;
+                            case DataType.GameObject:
+                                action = UIGenerator.GenerateObject(subName, (GameObject)val, change);
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        action = UIGenerator.GenerateObject(subName, (Object)val, change);
+                    }
+
                     break;
                 case EType.Button:
                     action = UIGenerator.GenerateButton(subName, (MethodInfo)member, this);
@@ -429,7 +457,7 @@ namespace EditorUIExtension
 
                     E_Range range = member.GetCustomAttribute<E_Range>();
 
-                    E_DataType dataType = member.GetCustomAttribute<E_DataType>();
+                    dataType = member.GetCustomAttribute<E_DataType>();
 
                     if (dataType.GetDataType() == DataType.Int)
                     {
@@ -599,7 +627,6 @@ namespace EditorUIExtension
         /// </summary>
         protected virtual void CustomUI()
         {
-            
         }
     }
 }

@@ -8,7 +8,9 @@ namespace EditorUIExtension
         Float,
         String,
         Double,
-        Bool
+        Bool,
+        Texture,
+        GameObject
     }
     
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field | AttributeTargets.Method)]
