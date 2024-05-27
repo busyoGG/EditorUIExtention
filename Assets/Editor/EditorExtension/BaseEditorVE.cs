@@ -147,24 +147,24 @@ namespace EditorUIExtension
                     }
 
                     //排除列表
-                    List<object> exclude = new List<object>()
-                    {
-                        EType.Button
-                    };
+                    // List<object> exclude = new List<object>()
+                    // {
+                    //     EType.Button
+                    // };
 
-                    StyleField sf = member.GetCustomAttribute<StyleField>();
+                    // StyleField sf = member.GetCustomAttribute<StyleField>();
 
-                    if (sf != null && sf.GetField() == StyleFieldType.Inner)
-                    {
-                        exclude.Add(editor.GetEType());
-                    }
-
-                    //在排除列表外的 UI 对父元素初始化样式
-                    if (exclude.IndexOf(eType) == -1)
-                    {
-                        //遍历 Attribute 设置容器样式
-                        InitStyle(box, attrs);
-                    }
+                    // if (sf != null && sf.GetField() == StyleFieldType.Inner)
+                    // {
+                    //     exclude.Add(editor.GetEType());
+                    // }
+                    //
+                    // //在排除列表外的 UI 对父元素初始化样式
+                    // if (exclude.IndexOf(eType) == -1)
+                    // {
+                    //     //遍历 Attribute 设置容器样式
+                    //     InitStyle(box, attrs);
+                    // }
 
 
                     // ----- 辅助对象 ----- start
@@ -191,13 +191,17 @@ namespace EditorUIExtension
                         ? eName.GetName()
                         : fieldName.Substring(0, 1).ToUpper() + fieldName.Substring(1);
 
+                    //辅助标签
                     Label subLabel;
 
+                    //是否换行
                     E_Wrap eWrap = member.GetCustomAttribute<E_Wrap>();
                     bool isWrap = eWrap != null;
 
+                    //数据类型
                     E_DataType dataType;
 
+                    //子元素
                     VisualElement child;
 
                     // ----- 辅助对象 ----- end
@@ -208,6 +212,8 @@ namespace EditorUIExtension
                             Label label = new Label();
                             label.style.fontSize = _fontSize;
                             label.text = value.ToString();
+
+                            InitInnerStyle(member, label);
 
                             box.Add(label);
                             break;
@@ -222,7 +228,7 @@ namespace EditorUIExtension
 
                             TextField text = new TextField();
                             text.style.flexGrow = 1;
-                            text.style.height = _fontSize * 1.2f;
+                            // text.style.height = _fontSize * 1.2f;
 
                             var fontChild = text.Children().FirstOrDefault().Children().FirstOrDefault();
                             fontChild.style.fontSize = _fontSize;
@@ -230,11 +236,7 @@ namespace EditorUIExtension
                             text.RegisterValueChangedCallback(evt => { setValue(this, evt.newValue); });
                             box.Add(text);
 
-                            if (sf != null && sf.GetField() != StyleFieldType.Outer)
-                            {
-                                child = text.Children().FirstOrDefault();
-                                InitInnerStyle(member, child);
-                            }
+                            InitInnerStyle(member, text.Children().FirstOrDefault());
 
                             break;
                         case EType.Button:
@@ -267,13 +269,10 @@ namespace EditorUIExtension
 
                             enumField.RegisterValueChangedCallback(evt => setValue(this, evt.newValue));
 
-                            if (sf != null && sf.GetField() != StyleFieldType.Outer)
+                            child = enumField.Children().FirstOrDefault();
+                            if (InitInnerStyle(member, child))
                             {
-                                child = enumField.Children().FirstOrDefault();
-                                if (InitInnerStyle(member, child))
-                                {
-                                    child.pickingMode = PickingMode.Position;
-                                }
+                                child.pickingMode = PickingMode.Position;
                             }
 
                             box.Add(enumField);
@@ -291,16 +290,17 @@ namespace EditorUIExtension
                                 RadioButton radio = new RadioButton();
                                 radio.Children().FirstOrDefault().style.flexGrow = 0;
 
-                                Label lbRadio = new Label();
-                                lbRadio.style.fontSize = _fontSize;
-                                lbRadio.text = selection;
+                                Label lbRadio = GenerateSubLabel(selection);
                                 lbRadio.style.marginLeft = 5;
                                 radio.Add(lbRadio);
 
                                 radioButtonGroup.Add(radio);
+
+                                InitInnerStyle(member, lbRadio);
                             }
 
                             radioButtonGroup.RegisterValueChangedCallback(evt => { setValue(this, evt.newValue); });
+                            
                             break;
                         case EType.Toggle:
                             Toggle toggle = new Toggle();
@@ -315,6 +315,8 @@ namespace EditorUIExtension
                             box.Add(subLabel);
                             subLabel.style.marginLeft = 5;
                             toggle.Add(subLabel);
+
+                            InitInnerStyle(member, subLabel);
                             break;
                         case EType.Slider:
                             if (!isWrap)
@@ -337,8 +339,9 @@ namespace EditorUIExtension
 
                             E_Range eRange = member.GetCustomAttribute<E_Range>();
 
-                            Label num = new Label();
-                            num.style.fontSize = _fontSize;
+                            TextField num = new TextField();
+                            var numChild = num.Children().FirstOrDefault().Children().FirstOrDefault();
+                            numChild.style.fontSize = _fontSize;
                             num.style.width = _fontSize * 3;
                             num.style.unityTextAlign = TextAnchor.MiddleRight;
 
@@ -346,7 +349,7 @@ namespace EditorUIExtension
                             {
                                 SliderInt slider = new SliderInt((int)eRange.GetStart(), (int)eRange.GetEnd());
 
-                                num.text = eRange.GetStart().ToString();
+                                num.value = eRange.GetStart().ToString();
 
                                 slider.value = 0;
                                 slider.style.flexGrow = 1;
@@ -354,7 +357,12 @@ namespace EditorUIExtension
                                 slider.RegisterValueChangedCallback(evt =>
                                 {
                                     setValue(this, evt.newValue);
-                                    num.text = evt.newValue.ToString();
+                                    num.value = evt.newValue.ToString();
+                                });
+
+                                num.RegisterValueChangedCallback(evt =>
+                                {
+                                    slider.value = int.Parse(evt.newValue);
                                 });
 
                                 sliderBox.Add(slider);
@@ -363,7 +371,7 @@ namespace EditorUIExtension
                             {
                                 Slider slider = new Slider(eRange.GetStart(), eRange.GetEnd());
 
-                                num.text = eRange.GetStart().ToString();
+                                num.value = eRange.GetStart().ToString();
 
                                 slider.value = 0;
                                 slider.style.flexGrow = 1;
@@ -371,11 +379,18 @@ namespace EditorUIExtension
                                 slider.RegisterValueChangedCallback(evt =>
                                 {
                                     setValue(this, evt.newValue);
-                                    num.text = evt.newValue.ToString();
+                                    num.value = evt.newValue.ToString();
+                                });
+
+                                num.RegisterValueChangedCallback(evt =>
+                                {
+                                    slider.value = float.Parse(evt.newValue);
                                 });
 
                                 sliderBox.Add(slider);
                             }
+
+                            InitInnerStyle(member, num.Children().FirstOrDefault());
 
                             sliderBox.Add(num);
 
@@ -496,12 +511,9 @@ namespace EditorUIExtension
 
                             box.Add(obj);
 
-                            if (sf != null && sf.GetField() != StyleFieldType.Outer)
+                            if (InitInnerStyle(member, obj))
                             {
-                                if (InitInnerStyle(member, obj))
-                                {
-                                    box.style.height = StyleKeyword.Auto;
-                                }
+                                box.style.height = StyleKeyword.Auto;
                             }
 
                             break;
@@ -517,6 +529,31 @@ namespace EditorUIExtension
                     VEStyleUtils.SetMargin(newBox.style, 5, 0, 0, 0);
                     newBox.name = newBoxName;
                     InitStyle(newBox, attrs);
+
+                    VisualElement subBox;
+                    E_Name eName = member.GetCustomAttribute<E_Name>();
+
+                    if (veBox.IsFold())
+                    {
+                        subBox = new Foldout();
+                        (subBox as Foldout).text = eName.GetName();
+                    }
+                    else
+                    {
+                        if (eName != null)
+                        {
+                            Label desc = new Label();
+                            desc.text = eName.GetName();
+                            desc.style.fontSize = _fontSize * 0.8f;
+                            desc.style.marginTop = 3;
+                            desc.style.alignSelf = Align.Center;
+                            newBox.Add(desc);
+                        }
+
+                        subBox = new VisualElement();
+                    }
+
+                    newBox.Add(subBox);
 
                     if (!string.IsNullOrEmpty(veBox.GetName()))
                     {
@@ -537,7 +574,7 @@ namespace EditorUIExtension
                         rootView.Add(newBox);
                     }
 
-                    _boxes.Add(newBoxName, newBox);
+                    _boxes.Add(newBoxName, subBox);
                 }
             }
         }
@@ -561,7 +598,7 @@ namespace EditorUIExtension
         {
             Label label = new Label();
             label.style.fontSize = _fontSize;
-            label.style.height = _fontSize * 1.25f;
+            // label.style.height = _fontSize * 1.25f;
             label.text = subName;
             return label;
         }

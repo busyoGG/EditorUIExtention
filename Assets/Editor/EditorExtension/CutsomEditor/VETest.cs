@@ -27,7 +27,7 @@ namespace EditorUIExtension.CutsomEditor
             Debug.Log("Input ===> " + _input);
         }
 
-        [VE_Box(true)]
+        [VE_Box(true,false,true),E_Name("自定义组1")]
         [ES_BgColor(0.5f,0.5f,0.5f,1),ES_Radius(10),ES_Border(4),ES_BorderColor(0,0,0,1),ES_FontColor(0,0,0,1)]
         private string _group = "group1";
 
