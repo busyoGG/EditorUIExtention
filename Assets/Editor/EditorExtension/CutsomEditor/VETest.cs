@@ -1,5 +1,8 @@
-﻿using UnityEditor;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace EditorUIExtension.CutsomEditor
 {
@@ -25,6 +28,21 @@ namespace EditorUIExtension.CutsomEditor
         private void Log()
         {
             Debug.Log("Input ===> " + _input);
+            Debug.Log("List ===> " + _list);
+        }
+
+        [E_Editor(EType.Button)]
+        [E_Name("添加列表元素")]
+        private void Add()
+        {
+            ListAdd("_list");
+        }
+
+        [E_Editor(EType.Button)]
+        [E_Name("移除列表元素")]
+        private void Remove()
+        {
+            ListRemove("_list");
         }
 
         [VE_Box(true,false,true),E_Name("自定义组1")]
@@ -56,5 +74,9 @@ namespace EditorUIExtension.CutsomEditor
         [ES_BgColor(0,1,0,1),ES_Border(3),ES_BorderColor(1,0,0,1),ES_FontColor(0,0,0,1)]
         [StyleField(StyleFieldType.Inner)]
         private Texture _texture;
+
+        [E_Editor(EType.Object),ES_Size(70,70)]
+        // [ES_BgColor(0,1,0,1),ES_Border(3),ES_BorderColor(1,0,0,1),ES_FontColor(0,0,0,1)]
+        private List<Texture2D> _list = new List<Texture2D>(){null,null};
     }
 }
