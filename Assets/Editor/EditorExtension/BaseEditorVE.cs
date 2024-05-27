@@ -709,7 +709,7 @@ namespace EditorUIExtension
                 case EType.Object:
                     VisualElement obj = new VisualElement();
                     obj.name = "Texture";
-                    VEStyleUtils.SetMargin(obj.style, 5);
+                    VEStyleUtils.SetMargin(obj.style, 5,0,0,5);
 
                     ES_Size size = member.GetCustomAttribute<ES_Size>();
 
