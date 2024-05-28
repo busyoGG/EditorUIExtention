@@ -8,13 +8,13 @@ namespace EditorUIExtension
     {
         private int _width;
 
-        private int _tl;
+        private int _t;
 
-        private int _tr;
+        private int _r;
 
-        private int _bl;
+        private int _b;
 
-        private int _br;
+        private int _l;
 
         private bool _same;
 
@@ -24,12 +24,12 @@ namespace EditorUIExtension
             _same = true;
         }
 
-        public ES_Border(int tl, int tr, int bl, int br)
+        public ES_Border(int t, int r, int b, int l)
         {
-            _tl = tl;
-            _tr = tr;
-            _bl = bl;
-            _br = br;
+            _t = t;
+            _r = r;
+            _b = b;
+            _l = l;
             _same = false;
         }
 
@@ -45,7 +45,7 @@ namespace EditorUIExtension
 
         public IntVec4 GetAllBorder()
         {
-            return new IntVec4(_tl, _tr, _bl, _br);
+            return new IntVec4(_t, _r, _b, _l);
         }
     }
 }

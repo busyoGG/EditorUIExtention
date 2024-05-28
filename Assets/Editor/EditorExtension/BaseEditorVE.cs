@@ -201,6 +201,7 @@ namespace EditorUIExtension
 
                     VisualElement box = new VisualElement();
                     VEStyleUtils.SetMargin(box.style, 5, 0, 0, 0);
+                    box.style.flexGrow = 1;
 
                     rootView.Add(box);
 

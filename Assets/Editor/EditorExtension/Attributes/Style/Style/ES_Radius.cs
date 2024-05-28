@@ -24,7 +24,7 @@ namespace EditorUIExtension
             _same = true;
         }
 
-        public ES_Radius(int tl, int tr, int bl, int br)
+        public ES_Radius(int tr, int br, int bl, int tl)
         {
             _tl = tl;
             _tr = tr;
@@ -45,7 +45,7 @@ namespace EditorUIExtension
 
         public IntVec4 GetAllRadius()
         {
-            return new IntVec4(_tl, _tr, _bl, _br);
+            return new IntVec4(_tr, _br, _bl, _tl);
         }
     }
 }

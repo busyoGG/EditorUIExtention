@@ -161,7 +161,7 @@ namespace EditorUIExtension
         /// <param name="br"></param>
         /// <param name="tl"></param>
         /// <param name="bl"></param>
-        public static void SetRadius(IStyle style,int tr,int br,int tl,int bl)
+        public static void SetRadius(IStyle style,int tr,int br,int bl,int tl)
         {
             style.borderBottomLeftRadius = bl;
             style.borderBottomRightRadius = br;
