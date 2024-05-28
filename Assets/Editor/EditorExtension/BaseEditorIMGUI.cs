@@ -249,19 +249,19 @@ namespace EditorUIExtension
             {
                 GUIStyle guiStyle = GenerateStyle(ui);
 
-                if (styles != null)
-                {
-                    //创建GUIStyle
-                    foreach (var style in styles)
-                    {
-                        switch (style)
-                        {
-                            case ES_BgColor color:
-                                guiStyle.normal.background = MakeTex(1, 1, color.GetColor(), 1);
-                                break;
-                        }
-                    }
-                }
+                // if (styles != null)
+                // {
+                //     //创建GUIStyle
+                //     foreach (var style in styles)
+                //     {
+                //         switch (style)
+                //         {
+                //             case ES_BgColor color:
+                //                 guiStyle.normal.background = MakeTex(1, 1, color.GetColor(), 1);
+                //                 break;
+                //         }
+                //     }
+                // }
 
                 return guiStyle;
             }
@@ -269,44 +269,44 @@ namespace EditorUIExtension
             return Style;
         }
 
-        // 创建一个单色纹理的方法
-        private Texture2D MakeTex(int width, int height, Color color, int borderRadius = 0)
-        {
-            Color[] pixels = new Color[width * height];
-            // Calculate radius
-            float r = borderRadius;
-            float rSquared = r * r;
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    // Corners
-                    bool inCircle1 = (x - r) * (x - r) + (y - r) * (y - r) <= rSquared; // Bottom left
-                    bool inCircle2 =
-                        (x - (width - r)) * (x - (width - r)) + (y - r) * (y - r) <= rSquared; // Bottom right
-                    bool inCircle3 =
-                        (x - r) * (x - r) + (y - (height - r)) * (y - (height - r)) <= rSquared; // Top left
-                    bool inCircle4 = (x - (width - r)) * (x - (width - r)) + (y - (height - r)) * (y - (height - r)) <=
-                                     rSquared; // Top right
-
-                    if ((x >= r && x < width - r) || (y >= r && y < height - r) || inCircle1 || inCircle2 ||
-                        inCircle3 || inCircle4)
-                    {
-                        pixels[y * width + x] = color;
-                    }
-                    else
-                    {
-                        pixels[y * width + x] = Color.clear; // Transparent
-                    }
-                }
-            }
-
-            Texture2D result = new Texture2D(width, height);
-            result.SetPixels(pixels);
-            result.Apply();
-            return result;
-        }
+        // // 创建一个单色纹理的方法
+        // private Texture2D MakeTex(int width, int height, Color color, int borderRadius = 0)
+        // {
+        //     Color[] pixels = new Color[width * height];
+        //     // Calculate radius
+        //     float r = borderRadius;
+        //     float rSquared = r * r;
+        //
+        //     for (int y = 0; y < height; y++)
+        //     {
+        //         for (int x = 0; x < width; x++)
+        //         {
+        //             // Corners
+        //             bool inCircle1 = (x - r) * (x - r) + (y - r) * (y - r) <= rSquared; // Bottom left
+        //             bool inCircle2 =
+        //                 (x - (width - r)) * (x - (width - r)) + (y - r) * (y - r) <= rSquared; // Bottom right
+        //             bool inCircle3 =
+        //                 (x - r) * (x - r) + (y - (height - r)) * (y - (height - r)) <= rSquared; // Top left
+        //             bool inCircle4 = (x - (width - r)) * (x - (width - r)) + (y - (height - r)) * (y - (height - r)) <=
+        //                              rSquared; // Top right
+        //
+        //             if ((x >= r && x < width - r) || (y >= r && y < height - r) || inCircle1 || inCircle2 ||
+        //                 inCircle3 || inCircle4)
+        //             {
+        //                 pixels[y * width + x] = color;
+        //             }
+        //             else
+        //             {
+        //                 pixels[y * width + x] = Color.clear; // Transparent
+        //             }
+        //         }
+        //     }
+        //
+        //     Texture2D result = new Texture2D(width, height);
+        //     result.SetPixels(pixels);
+        //     result.Apply();
+        //     return result;
+        // }
 
         /// <summary>
         /// 设置GUILayout
