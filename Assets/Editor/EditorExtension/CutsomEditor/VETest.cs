@@ -24,7 +24,8 @@ namespace EditorUIExtension.CutsomEditor
 
         [E_Editor(EType.Button)]
         [ES_Size(100,100)]
-        [ES_BgColor(0,1,0,1),ES_Border(3),ES_BorderColor(1,0,0,1),ES_FontColor(0,0,1,1)]
+        // [ES_BgColor(0,1,0,1),ES_Border(3),ES_BorderColor(1,0,0,1),ES_FontColor(0,0,1,1)]
+        [ES_Border(3),ES_BorderColor(1,0,0,1),ES_Radius(20)]
         private void Log()
         {
             Debug.Log("Input ===> " + _input);

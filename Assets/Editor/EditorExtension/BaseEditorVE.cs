@@ -1148,6 +1148,18 @@ namespace EditorUIExtension
                         }
 
                         break;
+                    case ES_Radius radius:
+                        if (radius.IsSame())
+                        {
+                            VEStyleUtils.SetRadius(ele.style, radius.GetRadius());
+                        }
+                        else
+                        {
+                            IntVec4 all = radius.GetAllRadius();
+                            VEStyleUtils.SetRadius(ele.style, all.x, all.y, all.z, all.w);
+                        }
+
+                        break;
                 }
             }
 
