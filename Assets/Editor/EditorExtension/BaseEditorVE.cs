@@ -169,20 +169,7 @@ namespace EditorUIExtension
             rootVisualElement.Add(rootView);
 
             //筛选包含编辑器拓展类型基类的对象  
-            var members = _type.GetMembers(_flag)
-                .SelectMany(m => m.GetCustomAttributes<EBase>().Select(attr => new
-                {
-                    Member = m,
-                    Attribute = attr
-                }))
-                .Where(x => x.Attribute != null)
-                .OrderBy(x => x.Attribute.lineNum)
-                .GroupBy(x => x.Member)
-                .Select(g => new
-                {
-                    Member = g.Key,
-                    Attributes = g.Select(x => x.Attribute).ToList() // 获取该成员的所有属性
-                });
+            var members = GetMembers(_type);
 
             foreach (var item in members)
             {
@@ -287,7 +274,6 @@ namespace EditorUIExtension
                         else
                         {
                             list.style.flexDirection = FlexDirection.Column;
-                            // list.style.flexWrap = Wrap.Wrap;
                         }
 
 
@@ -394,6 +380,30 @@ namespace EditorUIExtension
                     _boxes.Add(newBoxName, subBox);
                 }
             }
+        }
+
+        /// <summary>
+        /// 获取Member和Attributes
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private IEnumerable<(MemberInfo Member, List<EBase> Attributes)> GetMembers(Type type)
+        {
+            var members = type.GetMembers(_flag)
+                .SelectMany(m => m.GetCustomAttributes<EBase>().Select(attr => new
+                {
+                    Member = m,
+                    Attribute = attr
+                }))
+                .Where(x => x.Attribute != null)
+                .OrderBy(x => x.Attribute.lineNum)
+                .GroupBy(x => x.Member)
+                .Select(g => (
+                    Member: g.Key,
+                    Attributes: g.Select(x => x.Attribute).ToList() // 获取该成员的所有属性
+                ));
+
+            return members;
         }
 
         private void OnGUI()
@@ -784,6 +794,40 @@ namespace EditorUIExtension
                     });
 
                     parent.Add(obj);
+
+                    break;
+                case EType.Class:
+                    VisualElement container = new VisualElement();
+
+                    var classMembers = GetMembers(data.GetType());
+
+                    foreach (var m in classMembers)
+                    {
+                        MemberInfo mi = m.Member;
+
+                        E_Editor subEEditor = mi.GetCustomAttribute<E_Editor>();
+
+                        object subValue = (mi as FieldInfo).GetValue(data);
+
+                        SetFieldDelegate setValue = (SetFieldDelegate)Delegate.CreateDelegate(typeof(SetFieldDelegate),
+                            (mi as FieldInfo), "SetValue", false);
+
+                        Action<object> subSetData = o => { setValue(data, o); };
+
+                        VisualElement subContainer = new VisualElement();
+                        subContainer.style.flexGrow = 1;
+                        VEStyleUtils.SetMargin(subContainer.style, 5, 0, 0, 5);
+                        container.Add(subContainer);
+
+                        if (!isWrap)
+                        {
+                            container.style.flexDirection = FlexDirection.Row;
+                        }
+
+                        GenerateItem(subContainer, mi, subEEditor.GetEType(), subValue, subSetData);
+                    }
+
+                    parent.Add(container);
 
                     break;
             }

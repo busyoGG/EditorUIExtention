@@ -9,6 +9,7 @@ namespace EditorUIExtension
         Enum,
         Slider,
         Toggle,
-        Radio
+        Radio,
+        Class
     }
 }
