@@ -22,6 +22,12 @@ namespace EditorUIExtension.CutsomEditor
         // [ES_BgColor(0,1,0,1),ES_Border(3),ES_BorderColor(1,0,0,1),ES_FontColor(0,0,0,1)]
         private string _input;
 
+
+        [VE_Box(false,true),E_Name("自定义组1")]
+        // [ES_BgColor(0.5f,0.5f,0.5f,1),ES_Radius(10),ES_Border(4),ES_BorderColor(0,0,0,1),ES_FontColor(0,0,0,1)]
+        private string _group = "group1";
+        
+        [VE_Box("group1")]
         [E_Editor(EType.Button)]
         [ES_Size(100,100)]
         // [ES_BgColor(0,1,0,1),ES_Border(3),ES_BorderColor(1,0,0,1),ES_FontColor(0,0,1,1)]
@@ -32,8 +38,10 @@ namespace EditorUIExtension.CutsomEditor
             Debug.Log("List ===> " + _list);
         }
 
+        [VE_Box("group1")]
         [E_Editor(EType.Button)]
         [E_Name("添加列表元素")]
+        [ES_Size(100,100)]
         private void Add()
         {
             ListAdd("_list");
@@ -46,13 +54,8 @@ namespace EditorUIExtension.CutsomEditor
             ListRemove("_list");
         }
 
-        [VE_Box(true,false,true),E_Name("自定义组1")]
-        // [ES_BgColor(0.5f,0.5f,0.5f,1),ES_Radius(10),ES_Border(4),ES_BorderColor(0,0,0,1),ES_FontColor(0,0,0,1)]
-        private string _group = "group1";
-
         [E_Editor(EType.Enum),E_Name("枚举")]
         // [ES_BgColor(0,1,0,1),ES_Border(3),ES_BorderColor(1,0,0,1),ES_FontColor(0,0,0,1)]
-        [VE_Box("group1")]
         private EType _type;
 
         [E_Editor(EType.Radio),E_Options("选项1","选项2","选项3")]
@@ -74,8 +77,9 @@ namespace EditorUIExtension.CutsomEditor
         // [ES_BgColor(0,1,0,1),ES_Border(3),ES_BorderColor(1,0,0,1),ES_FontColor(0,0,0,1)]
         private Texture _texture;
 
-        [E_Editor(EType.Object),ES_Size(70,70)]
-        // [ES_BgColor(0,1,0,1),ES_Border(3),ES_BorderColor(1,0,0,1),ES_FontColor(0,0,0,1)]
+        [E_Editor(EType.Object),E_DataType(DataType.Texture)]
+        [ES_Size(70,70)]
+        // [ES_Size(70,70),ES_BgColor(0,1,0,1),ES_Border(3),ES_BorderColor(1,0,0,1),ES_FontColor(0,0,0,1)]
         private List<Texture2D> _list = new List<Texture2D>(){null,null};
     }
 }

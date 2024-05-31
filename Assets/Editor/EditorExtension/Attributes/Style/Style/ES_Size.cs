@@ -14,16 +14,16 @@ namespace EditorUIExtension
     }
     
     /// <summary>
-    /// UI´óĞ¡ ²ÎÊıx£º¿í¶È£»²ÎÊıy£º¸ß¶È£»²ÎÊıpercent£ºÊÇ·ñ±ÈÀıÖÆ
+    /// UIå¤§å° å‚æ•°xï¼šå®½åº¦ï¼›å‚æ•°yï¼šé«˜åº¦ï¼›å‚æ•°percentï¼šæ˜¯å¦æ¯”ä¾‹åˆ¶
     /// </summary>
     public class ES_Size : Attribute
     {
         /// <summary>
-        /// ´óĞ¡
+        /// å¤§å°
         /// </summary>
         private readonly Vector2 _size;
         /// <summary>
-        /// ÊÇ·ñ±ÈÀıÖÆ
+        /// æ˜¯å¦æ¯”ä¾‹åˆ¶
         /// </summary>
         private readonly ESPercent _isPercent;
     

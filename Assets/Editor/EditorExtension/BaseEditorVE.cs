@@ -105,7 +105,7 @@ namespace EditorUIExtension
 
             VisualElement listItem = GenerateListItem(field, editor.GetEType(), null, setData);
 
-            RegisterDrag(listItem, list,data);
+            RegisterDrag(listItem, list, data);
 
             list.Add(listItem);
         }
@@ -289,7 +289,7 @@ namespace EditorUIExtension
 
                             VisualElement listItem = GenerateListItem(member, eType, data, setData);
                             list.Add(listItem);
-                            RegisterDrag(listItem, list,value as IList);
+                            RegisterDrag(listItem, list, value as IList);
                         }
                     }
                     else
@@ -616,7 +616,9 @@ namespace EditorUIExtension
 
                     VisualElement newBox = new VisualElement();
                     VEStyleUtils.SetMargin(newBox.style, 5, 0, 0, 0);
+
                     newBox.name = newBoxName;
+
                     InitStyle(newBox, attrs);
 
                     VisualElement subBox;
@@ -640,6 +642,11 @@ namespace EditorUIExtension
                         }
 
                         subBox = new VisualElement();
+                    }
+
+                    if (veBox.IsHorizontal())
+                    {
+                        subBox.contentContainer.style.flexDirection = FlexDirection.Row;
                     }
 
                     newBox.Add(subBox);
@@ -710,7 +717,7 @@ namespace EditorUIExtension
                 case EType.Object:
                     VisualElement obj = new VisualElement();
                     obj.name = "Texture";
-                    VEStyleUtils.SetMargin(obj.style, 5,0,0,5);
+                    VEStyleUtils.SetMargin(obj.style, 5, 0, 0, 5);
 
                     ES_Size size = member.GetCustomAttribute<ES_Size>();
 
@@ -964,6 +971,7 @@ namespace EditorUIExtension
 
             bool isFocus = false;
 
+            //匹配的样式列表
             List<object> attrs = new List<object>()
             {
                 member.GetCustomAttribute<ES_BgColor>(),
@@ -1200,7 +1208,7 @@ namespace EditorUIExtension
         /// </summary>
         /// <param name="ele"></param>
         /// <param name="parent"></param>
-        private void RegisterDrag(VisualElement ele, VisualElement parent,IList data)
+        private void RegisterDrag(VisualElement ele, VisualElement parent, IList data)
         {
             VisualElement empty = new VisualElement();
 
@@ -1217,7 +1225,6 @@ namespace EditorUIExtension
                     _defPos = evt.position;
                     _defTL = new Vector2(_dragElement.resolvedStyle.left - _dragElement.resolvedStyle.marginLeft,
                         _dragElement.resolvedStyle.top - _dragElement.resolvedStyle.marginTop);
-
                 }
             });
 
@@ -1253,6 +1260,7 @@ namespace EditorUIExtension
             {
                 if (_dragElement != null)
                 {
+                    bool isExchange = false;
                     foreach (var child in parent.Children())
                     {
                         if (child != _dragElement && child.worldBound.Contains(evt.position))
@@ -1261,11 +1269,11 @@ namespace EditorUIExtension
                             int insertIndex = parent.IndexOf(child);
                             parent.Remove(_dragElement);
                             parent.Insert(insertIndex, _dragElement);
-                            parent.Insert(defIndex,child);
-                            
+                            parent.Insert(defIndex, child);
+
                             //数据交换
                             (data[defIndex], data[insertIndex]) = (data[insertIndex], data[defIndex]);
-
+                            isExchange = true;
                             break;
                         }
                     }
@@ -1280,6 +1288,10 @@ namespace EditorUIExtension
                     if (parent.IndexOf(empty) != -1)
                     {
                         parent.Remove(empty);
+                        if (!isExchange)
+                        {
+                            parent.Insert(defIndex, _dragElement);
+                        }
                     }
 
                     _dragElement.ReleasePointer(evt.pointerId);

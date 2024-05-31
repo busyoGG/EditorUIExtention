@@ -13,11 +13,12 @@ namespace EditorUIExtension
 
         private bool _isFold;
 
-        public VE_Box(bool isCreate,bool isHorizontal = false,bool isFold = false,[CallerLineNumber] int lineNumber = 0): base(lineNumber)
+        public VE_Box(bool isHorizontal = false,bool isFold = false,string boxName = "",[CallerLineNumber] int lineNumber = 0): base(lineNumber)
         {
-            _isCreate = isCreate;
+            _isCreate = true;
             _isHorizontal = isHorizontal;
             _isFold = isFold;
+            _boxName = boxName;
         }
 
         public VE_Box(string name,[CallerLineNumber] int lineNumber = 0): base(lineNumber)
