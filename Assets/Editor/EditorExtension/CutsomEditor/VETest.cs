@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -35,6 +36,7 @@ namespace EditorUIExtension.CutsomEditor
         private void Log()
         {
             Debug.Log("Input ===> " + _input);
+            Debug.Log("Tex ===> " + _texture);
             Debug.Log("List ===> " + _list);
         }
 
@@ -81,5 +83,16 @@ namespace EditorUIExtension.CutsomEditor
         [ES_Size(70,70)]
         // [ES_Size(70,70),ES_BgColor(0,1,0,1),ES_Border(3),ES_BorderColor(1,0,0,1),ES_FontColor(0,0,0,1)]
         private List<Texture2D> _list = new List<Texture2D>(){null,null};
+
+        [E_Editor(EType.Slider),E_Range(1,100),E_Wrap]
+        // [ES_Size(100,50)]
+        [ES_List(FlexDirection.Column),ES_Item(true)]
+        private List<float> _actList = new List<float>()
+        {
+            // ()=>{Debug.Log("第一个按钮");},
+            // ()=>{Debug.Log("第二个按钮");}
+            0,
+            0
+        };
     }
 }

@@ -101,13 +101,14 @@ namespace EditorUIExtension
             IList data = field.GetValue(this) as IList;
             data.Add(null);
 
-            Action<Object> setData = o => { data[data.Count - 1] = o; };
+            Action<object> setData = o => { data[data.Count - 1] = o; };
 
-            VisualElement listItem = GenerateListItem(field, editor.GetEType(), null, setData);
+            VisualElement subBox = new VisualElement();
+            list.Add(subBox);
 
-            RegisterDrag(listItem, list, data);
+            GenerateItem(subBox, field, editor.GetEType(), null, setData);
 
-            list.Add(listItem);
+            RegisterDrag(subBox, list, data);
         }
 
         /// <summary>
@@ -275,337 +276,57 @@ namespace EditorUIExtension
                         box.Add(subLabel);
 
                         VisualElement list = new VisualElement();
-                        list.style.flexDirection = FlexDirection.Row;
-                        list.style.flexWrap = Wrap.Wrap;
+
+                        ES_List esList = member.GetCustomAttribute<ES_List>();
+
+                        if (esList != null)
+                        {
+                            list.style.flexDirection = esList.GetDirection();
+                            list.style.flexWrap = esList.GetWrap();
+                        }
+                        else
+                        {
+                            list.style.flexDirection = FlexDirection.Column;
+                            // list.style.flexWrap = Wrap.Wrap;
+                        }
+
 
                         box.Add(list);
 
                         for (int i = 0; i < (value as IList).Count; i++)
                         {
-                            Object data = (value as IList)[i] as Object;
+                            object data = (value as IList)[i];
                             int index = i;
 
-                            Action<Object> setData = (Object res) => { (value as IList)[index] = res; };
+                            Action<object> setData = res => { (value as IList)[index] = res; };
 
-                            VisualElement listItem = GenerateListItem(member, eType, data, setData);
-                            list.Add(listItem);
-                            RegisterDrag(listItem, list, value as IList);
+                            VisualElement subBox = new VisualElement();
+                            ES_Item esItem = member.GetCustomAttribute<ES_Item>();
+                            if (esItem != null)
+                            {
+                                if (esItem.GetGrow())
+                                {
+                                    subBox.style.flexGrow = 1;
+                                }
+                                else
+                                {
+                                    subBox.style.width = esItem.GetWidth();
+                                    subBox.style.height = esItem.GetHeight();
+                                }
+                            }
+
+                            list.Add(subBox);
+
+                            GenerateItem(subBox, member, eType, data, setData);
+                            RegisterDrag(subBox, list, value as IList);
                         }
                     }
                     else
                     {
-                        switch (eType)
-                        {
-                            case EType.Label:
-                                Label label = new Label();
-                                label.style.fontSize = _fontSize;
-                                label.text = value.ToString();
+                        Action<object> setData = obj => { setValue(this, obj); };
 
-                                InitInnerStyle(member, label);
-
-                                box.Add(label);
-                                break;
-                            case EType.Input:
-                                if (!isWrap)
-                                {
-                                    box.style.flexDirection = FlexDirection.Row;
-                                }
-
-                                subLabel = GenerateSubLabel(subName);
-                                box.Add(subLabel);
-
-                                TextField text = new TextField();
-                                text.style.flexGrow = 1;
-                                // text.style.height = _fontSize * 1.2f;
-
-                                var fontChild = text.Children().FirstOrDefault().Children().FirstOrDefault();
-                                fontChild.style.fontSize = _fontSize;
-
-                                text.RegisterValueChangedCallback(evt => { setValue(this, evt.newValue); });
-                                box.Add(text);
-
-                                InitInnerStyle(member, text.Children().FirstOrDefault());
-
-                                break;
-                            case EType.Button:
-                                Button button = new Button();
-                                button.text = subName;
-                                Action clickAction =
-                                    (Action)Delegate.CreateDelegate(typeof(Action), this, member as MethodInfo);
-                                button.clicked += clickAction;
-                                box.Add(button);
-
-                                if (InitInnerStyle(member, button))
-                                {
-                                    //干掉激活按钮的触发器（鼠标左键）
-                                    button.clickable.activators.Clear();
-                                    button.RegisterCallback<ClickEvent>(evt => { clickAction(); });
-                                }
-
-                                break;
-                            case EType.Enum:
-                                if (!isWrap)
-                                {
-                                    box.style.flexDirection = FlexDirection.Row;
-                                }
-
-                                subLabel = GenerateSubLabel(subName);
-                                box.Add(subLabel);
-
-                                EnumField enumField = new EnumField(value as Enum);
-                                enumField.style.flexGrow = 1;
-
-                                enumField.RegisterValueChangedCallback(evt => setValue(this, evt.newValue));
-
-                                child = enumField.Children().FirstOrDefault();
-                                if (InitInnerStyle(member, child))
-                                {
-                                    child.pickingMode = PickingMode.Position;
-                                }
-
-                                box.Add(enumField);
-                                break;
-                            case EType.Radio:
-                                RadioButtonGroup radioButtonGroup = new RadioButtonGroup();
-                                radioButtonGroup.value = 0;
-
-                                box.Add(radioButtonGroup);
-
-                                E_Options options = member.GetCustomAttribute<E_Options>();
-
-                                foreach (var selection in options.GetOptions())
-                                {
-                                    RadioButton radio = new RadioButton();
-                                    radio.Children().FirstOrDefault().style.flexGrow = 0;
-
-                                    Label lbRadio = GenerateSubLabel(selection);
-                                    lbRadio.style.marginLeft = 5;
-                                    radio.Add(lbRadio);
-
-                                    radioButtonGroup.Add(radio);
-
-                                    InitInnerStyle(member, lbRadio);
-                                }
-
-                                radioButtonGroup.RegisterValueChangedCallback(evt => { setValue(this, evt.newValue); });
-
-                                break;
-                            case EType.Toggle:
-                                Toggle toggle = new Toggle();
-                                toggle.style.width = StyleKeyword.Auto;
-                                toggle.Children().FirstOrDefault().style.flexGrow = 0;
-
-                                toggle.RegisterValueChangedCallback(evt => { setValue(this, evt.newValue); });
-
-                                box.Add(toggle);
-
-                                subLabel = GenerateSubLabel(subName);
-                                box.Add(subLabel);
-                                subLabel.style.marginLeft = 5;
-                                toggle.Add(subLabel);
-
-                                InitInnerStyle(member, subLabel);
-                                break;
-                            case EType.Slider:
-                                if (!isWrap)
-                                {
-                                    box.style.flexDirection = FlexDirection.Row;
-                                }
-
-                                subLabel = GenerateSubLabel(subName);
-                                box.Add(subLabel);
-
-                                //用于包裹进度条和进度条数值的 UI 元素
-                                VisualElement sliderBox = new VisualElement();
-                                sliderBox.style.flexDirection = FlexDirection.Row;
-                                sliderBox.style.flexGrow = 1;
-
-                                box.Add(sliderBox);
-
-                                dataType = member.GetCustomAttribute<E_DataType>();
-                                bool isInt = dataType != null && dataType.GetDataType() == DataType.Int;
-
-                                E_Range eRange = member.GetCustomAttribute<E_Range>();
-
-                                TextField num = new TextField();
-                                var numChild = num.Children().FirstOrDefault().Children().FirstOrDefault();
-                                numChild.style.fontSize = _fontSize;
-                                num.style.width = _fontSize * 3;
-                                num.style.unityTextAlign = TextAnchor.MiddleRight;
-
-                                if (isInt)
-                                {
-                                    SliderInt slider = new SliderInt((int)eRange.GetStart(), (int)eRange.GetEnd());
-
-                                    num.value = eRange.GetStart().ToString();
-
-                                    slider.value = 0;
-                                    slider.style.flexGrow = 1;
-
-                                    slider.RegisterValueChangedCallback(evt =>
-                                    {
-                                        setValue(this, evt.newValue);
-                                        num.value = evt.newValue.ToString();
-                                    });
-
-                                    num.RegisterValueChangedCallback(evt =>
-                                    {
-                                        slider.value = int.Parse(evt.newValue);
-                                    });
-
-                                    sliderBox.Add(slider);
-                                }
-                                else
-                                {
-                                    Slider slider = new Slider(eRange.GetStart(), eRange.GetEnd());
-
-                                    num.value = eRange.GetStart().ToString();
-
-                                    slider.value = 0;
-                                    slider.style.flexGrow = 1;
-
-                                    slider.RegisterValueChangedCallback(evt =>
-                                    {
-                                        setValue(this, evt.newValue);
-                                        num.value = evt.newValue.ToString();
-                                    });
-
-                                    num.RegisterValueChangedCallback(evt =>
-                                    {
-                                        slider.value = float.Parse(evt.newValue);
-                                    });
-
-                                    sliderBox.Add(slider);
-                                }
-
-                                InitInnerStyle(member, num.Children().FirstOrDefault());
-
-                                sliderBox.Add(num);
-
-                                break;
-                            case EType.Object:
-                                // box.style.flexDirection = FlexDirection.Row;
-
-                                subLabel = GenerateSubLabel(subName);
-                                box.Add(subLabel);
-
-
-                                VisualElement obj = new VisualElement();
-
-                                ES_Size size = member.GetCustomAttribute<ES_Size>();
-
-                                //没选中时的提示
-                                Label lbNone;
-
-                                //显示的贴图
-                                Image img = new Image();
-                                img.style.justifyContent = Justify.Center;
-                                obj.Add(img);
-
-                                Label pickedObjName = new Label();
-                                img.Add(pickedObjName);
-
-                                if (size != null)
-                                {
-                                    //有 size 的情况下，size 改变的是包裹该 UI 的父容器大小，因此此处宽高填满父容器
-                                    box.style.height = box.style.height.value.value + _fontSize * 1.25f;
-                                    obj.style.flexGrow = 1;
-                                    img.style.flexGrow = 1;
-                                    lbNone = GenerateSubLabel("None\n(Texture)");
-                                    lbNone.style.position = Position.Absolute;
-                                    pickedObjName.style.marginLeft = size.GetWidth() + 5;
-                                }
-                                else
-                                {
-                                    //没有 size 的情况下，设置默认宽高，让父容器自适应大小
-                                    obj.style.width = Length.Percent(100);
-                                    obj.style.height = _fontSize * 1.65f;
-                                    img.style.width = obj.style.height.value.value * 0.8f;
-                                    img.style.height = obj.style.height.value.value * 0.8f;
-                                    img.style.alignSelf = Align.FlexStart;
-                                    lbNone = GenerateSubLabel("None(Texture)");
-                                    pickedObjName.style.marginLeft = obj.style.height.value.value + 5;
-                                }
-
-
-                                obj.style.overflow = Overflow.Hidden;
-                                obj.style.backgroundColor = new Color(0.18f, 0.18f, 0.18f, 1);
-
-                                VEStyleUtils.SetBorderColor(obj.style, Color.black);
-                                VEStyleUtils.SetBorder(obj.style, 2);
-                                VEStyleUtils.SetRadius(obj.style, 5);
-
-                                obj.Add(lbNone);
-
-                                Action callback = () =>
-                                {
-                                    Object res = GetPickedObject<Object>();
-
-                                    if (res != null)
-                                    {
-                                        GUIContent content = EditorGUIUtility.ObjectContent(res, res.GetType());
-                                        img.image = content.image;
-                                        pickedObjName.text = content.text;
-                                        img.visible = true;
-                                    }
-                                    else
-                                    {
-                                        img.visible = false;
-                                    }
-
-                                    //选择贴图后移除 None 提示，否则显示 None 提示
-                                    if (obj.childCount <= 1)
-                                    {
-                                        if (res == null)
-                                        {
-                                            obj.Add(lbNone);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (res != null)
-                                        {
-                                            obj.Remove(lbNone);
-                                        }
-                                    }
-
-                                    setValue(this, res);
-                                };
-
-                                dataType = member.GetCustomAttribute<E_DataType>();
-
-                                //设置监听
-                                obj.RegisterCallback<ClickEvent>(evt =>
-                                {
-                                    if (dataType != null)
-                                    {
-                                        switch (dataType.GetDataType())
-                                        {
-                                            case DataType.Texture:
-                                                ShowPicker<Texture2D>();
-                                                break;
-                                            case DataType.GameObject:
-                                                ShowPicker<GameObject>();
-                                                break;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        ShowPicker<Object>();
-                                    }
-
-                                    onPickerClosed += callback;
-                                });
-
-                                box.Add(obj);
-
-                                if (InitInnerStyle(member, obj))
-                                {
-                                    box.style.height = StyleKeyword.Auto;
-                                }
-
-                                break;
-                        }
+                        //生成UI
+                        GenerateItem(box, member, eType, value, setData);
                     }
                 }
                 else if (isCreate)
@@ -710,10 +431,217 @@ namespace EditorUIExtension
         /// <param name="eType"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        private VisualElement GenerateListItem(MemberInfo member, EType eType, object data, Action<Object> setData)
+        private void GenerateItem(VisualElement parent, MemberInfo member, EType eType, object data,
+            Action<object> setData)
         {
+            //辅助名称
+            E_Name eName = member.GetCustomAttribute<E_Name>();
+            string fieldName = member.Name.Replace("_", "");
+            string subName = eName != null
+                ? eName.GetName()
+                : fieldName.Substring(0, 1).ToUpper() + fieldName.Substring(1);
+
+            //辅助标签
+            Label subLabel;
+
+            //是否换行
+            E_Wrap eWrap = member.GetCustomAttribute<E_Wrap>();
+            bool isWrap = eWrap != null;
+
+            //数据类型
+            E_DataType dataType;
+
+            //子元素
+            VisualElement child;
+
+
             switch (eType)
             {
+                case EType.Label:
+                    Label label = new Label();
+                    label.style.fontSize = _fontSize;
+                    label.text = data.ToString();
+
+                    InitInnerStyle(member, label);
+
+                    parent.Add(label);
+                    break;
+                case EType.Input:
+                    if (!isWrap)
+                    {
+                        parent.style.flexDirection = FlexDirection.Row;
+                    }
+
+                    subLabel = GenerateSubLabel(subName);
+                    parent.Add(subLabel);
+
+                    TextField text = new TextField();
+                    text.style.flexGrow = 1;
+                    // text.style.height = _fontSize * 1.2f;
+
+                    var fontChild = text.Children().FirstOrDefault().Children().FirstOrDefault();
+                    fontChild.style.fontSize = _fontSize;
+
+                    text.RegisterValueChangedCallback(evt => { setData(evt.newValue); });
+                    parent.Add(text);
+
+                    InitInnerStyle(member, text.Children().FirstOrDefault());
+
+                    break;
+                case EType.Button:
+                    Button button = new Button();
+                    button.text = subName;
+                    if (data == null)
+                    {
+                        data = Delegate.CreateDelegate(typeof(Action), this, member as MethodInfo);
+                    }
+
+                    Action clickAction = (Action)data;
+                    button.clicked += clickAction;
+                    parent.Add(button);
+
+                    if (InitInnerStyle(member, button))
+                    {
+                        //干掉激活按钮的触发器（鼠标左键）
+                        button.clickable.activators.Clear();
+                        button.RegisterCallback<ClickEvent>(evt => { clickAction(); });
+                    }
+
+                    break;
+                case EType.Enum:
+                    if (!isWrap)
+                    {
+                        parent.style.flexDirection = FlexDirection.Row;
+                    }
+
+                    subLabel = GenerateSubLabel(subName);
+                    parent.Add(subLabel);
+
+                    EnumField enumField = new EnumField(data as Enum);
+                    enumField.style.flexGrow = 1;
+
+                    enumField.RegisterValueChangedCallback(evt => setData(evt.newValue));
+
+                    child = enumField.Children().FirstOrDefault();
+                    if (InitInnerStyle(member, child))
+                    {
+                        child.pickingMode = PickingMode.Position;
+                    }
+
+                    parent.Add(enumField);
+                    break;
+                case EType.Radio:
+                    RadioButtonGroup radioButtonGroup = new RadioButtonGroup();
+                    radioButtonGroup.value = 0;
+
+                    parent.Add(radioButtonGroup);
+
+                    E_Options options = member.GetCustomAttribute<E_Options>();
+
+                    foreach (var selection in options.GetOptions())
+                    {
+                        RadioButton radio = new RadioButton();
+                        radio.Children().FirstOrDefault().style.flexGrow = 0;
+
+                        Label lbRadio = GenerateSubLabel(selection);
+                        lbRadio.style.marginLeft = 5;
+                        radio.Add(lbRadio);
+
+                        radioButtonGroup.Add(radio);
+
+                        InitInnerStyle(member, lbRadio);
+                    }
+
+                    radioButtonGroup.RegisterValueChangedCallback(evt => { setData(evt.newValue); });
+
+                    break;
+                case EType.Toggle:
+                    Toggle toggle = new Toggle();
+                    toggle.style.width = StyleKeyword.Auto;
+                    toggle.Children().FirstOrDefault().style.flexGrow = 0;
+
+                    toggle.RegisterValueChangedCallback(evt => { setData(evt.newValue); });
+
+                    parent.Add(toggle);
+
+                    subLabel = GenerateSubLabel(subName);
+                    parent.Add(subLabel);
+                    subLabel.style.marginLeft = 5;
+                    toggle.Add(subLabel);
+
+                    InitInnerStyle(member, subLabel);
+                    break;
+                case EType.Slider:
+                    if (!isWrap)
+                    {
+                        parent.style.flexDirection = FlexDirection.Row;
+                    }
+
+                    subLabel = GenerateSubLabel(subName);
+                    parent.Add(subLabel);
+
+                    //用于包裹进度条和进度条数值的 UI 元素
+                    VisualElement sliderBox = new VisualElement();
+                    sliderBox.style.flexDirection = FlexDirection.Row;
+                    sliderBox.style.flexGrow = 1;
+
+                    parent.Add(sliderBox);
+
+                    dataType = member.GetCustomAttribute<E_DataType>();
+                    bool isInt = dataType != null && dataType.GetDataType() == DataType.Int;
+
+                    E_Range eRange = member.GetCustomAttribute<E_Range>();
+
+                    TextField num = new TextField();
+                    var numChild = num.Children().FirstOrDefault().Children().FirstOrDefault();
+                    numChild.style.fontSize = _fontSize;
+                    num.style.width = _fontSize * 3;
+                    num.style.unityTextAlign = TextAnchor.MiddleRight;
+
+                    if (isInt)
+                    {
+                        SliderInt slider = new SliderInt((int)eRange.GetStart(), (int)eRange.GetEnd());
+
+                        num.value = eRange.GetStart().ToString();
+
+                        slider.value = 0;
+                        slider.style.flexGrow = 1;
+
+                        slider.RegisterValueChangedCallback(evt =>
+                        {
+                            setData(evt.newValue);
+                            num.value = evt.newValue.ToString();
+                        });
+
+                        num.RegisterValueChangedCallback(evt => { slider.value = int.Parse(evt.newValue); });
+
+                        sliderBox.Add(slider);
+                    }
+                    else
+                    {
+                        Slider slider = new Slider(eRange.GetStart(), eRange.GetEnd());
+
+                        num.value = eRange.GetStart().ToString();
+
+                        slider.value = 0;
+                        slider.style.flexGrow = 1;
+
+                        slider.RegisterValueChangedCallback(evt =>
+                        {
+                            setData(evt.newValue);
+                            num.value = evt.newValue.ToString();
+                        });
+
+                        num.RegisterValueChangedCallback(evt => { slider.value = float.Parse(evt.newValue); });
+
+                        sliderBox.Add(slider);
+                    }
+
+                    InitInnerStyle(member, num.Children().FirstOrDefault());
+
+                    sliderBox.Add(num);
+
+                    break;
                 case EType.Object:
                     VisualElement obj = new VisualElement();
                     obj.name = "Texture";
@@ -779,7 +707,7 @@ namespace EditorUIExtension
                     {
                     }
 
-                    E_DataType dataType = member.GetCustomAttribute<E_DataType>();
+                    dataType = member.GetCustomAttribute<E_DataType>();
 
                     //初始化
                     if (data != null)
@@ -829,8 +757,6 @@ namespace EditorUIExtension
                             lbNone.style.display = DisplayStyle.None;
                         }
 
-                        // setValue(this, res);
-                        // data = res;
                         setData(res);
                     };
 
@@ -857,10 +783,12 @@ namespace EditorUIExtension
                         onPickerClosed += callback;
                     });
 
-                    return obj;
+                    parent.Add(obj);
+
+                    break;
             }
 
-            return null;
+            // return null;
         }
 
         /// <summary>
@@ -1216,6 +1144,8 @@ namespace EditorUIExtension
 
             bool isCapture = false;
 
+            StyleLength height = parent.style.height;
+
             ele.RegisterCallback<PointerDownEvent>(evt =>
             {
                 if (evt.button == 0) // 左键
@@ -1230,7 +1160,7 @@ namespace EditorUIExtension
 
             ele.RegisterCallback<PointerMoveEvent>(evt =>
             {
-                if (!isCapture && _dragElement != null)
+                if (!isCapture && _dragElement != null && _isLeftMouseDown)
                 {
                     ele.CapturePointer(evt.pointerId);
                     isCapture = true;
@@ -1241,6 +1171,8 @@ namespace EditorUIExtension
                         child.style.left = child.resolvedStyle.left - child.resolvedStyle.marginLeft;
                         child.style.top = child.resolvedStyle.top - child.resolvedStyle.marginTop;
                     }
+
+                    parent.style.height = parent.resolvedStyle.height;
 
                     //占位
                     defIndex = parent.IndexOf(_dragElement);
@@ -1285,6 +1217,8 @@ namespace EditorUIExtension
                         child.style.top = 0;
                     }
 
+                    parent.style.height = height;
+
                     if (parent.IndexOf(empty) != -1)
                     {
                         parent.Remove(empty);
@@ -1297,6 +1231,7 @@ namespace EditorUIExtension
                     _dragElement.ReleasePointer(evt.pointerId);
                     _dragElement = null;
                     isCapture = false;
+                    Debug.Log("抬起");
                 }
             });
         }
