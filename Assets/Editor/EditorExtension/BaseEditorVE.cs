@@ -106,7 +106,7 @@ namespace EditorUIExtension
             VisualElement subBox = new VisualElement();
             list.Add(subBox);
 
-            GenerateItem(subBox, field, editor.GetEType(), null, setData);
+            GenerateItem(subBox, field, editor.GetEType(), null, setData, true);
 
             RegisterDrag(subBox, list, data);
         }
@@ -303,7 +303,7 @@ namespace EditorUIExtension
 
                             list.Add(subBox);
 
-                            GenerateItem(subBox, member, eType, data, setData);
+                            GenerateItem(subBox, member, eType, data, setData, true);
                             RegisterDrag(subBox, list, value as IList);
                         }
                     }
@@ -442,7 +442,7 @@ namespace EditorUIExtension
         /// <param name="data"></param>
         /// <returns></returns>
         private void GenerateItem(VisualElement parent, MemberInfo member, EType eType, object data,
-            Action<object> setData)
+            Action<object> setData, bool isList = false)
         {
             //辅助名称
             E_Name eName = member.GetCustomAttribute<E_Name>();
@@ -482,8 +482,11 @@ namespace EditorUIExtension
                         parent.style.flexDirection = FlexDirection.Row;
                     }
 
-                    subLabel = GenerateSubLabel(subName);
-                    parent.Add(subLabel);
+                    if (!isList)
+                    {
+                        subLabel = GenerateSubLabel(subName);
+                        parent.Add(subLabel);
+                    }
 
                     TextField text = new TextField();
                     text.style.flexGrow = 1;
@@ -524,8 +527,11 @@ namespace EditorUIExtension
                         parent.style.flexDirection = FlexDirection.Row;
                     }
 
-                    subLabel = GenerateSubLabel(subName);
-                    parent.Add(subLabel);
+                    if (!isList)
+                    {
+                        subLabel = GenerateSubLabel(subName);
+                        parent.Add(subLabel);
+                    }
 
                     EnumField enumField = new EnumField(data as Enum);
                     enumField.style.flexGrow = 1;
@@ -587,8 +593,11 @@ namespace EditorUIExtension
                         parent.style.flexDirection = FlexDirection.Row;
                     }
 
-                    subLabel = GenerateSubLabel(subName);
-                    parent.Add(subLabel);
+                    if (!isList)
+                    {
+                        subLabel = GenerateSubLabel(subName);
+                        parent.Add(subLabel);
+                    }
 
                     //用于包裹进度条和进度条数值的 UI 元素
                     VisualElement sliderBox = new VisualElement();
@@ -656,6 +665,12 @@ namespace EditorUIExtension
                     VisualElement obj = new VisualElement();
                     obj.name = "Texture";
                     VEStyleUtils.SetMargin(obj.style, 5, 0, 0, 5);
+
+                    if (!isList)
+                    {
+                        subLabel = GenerateSubLabel(subName);
+                        parent.Add(subLabel);
+                    }
 
                     ES_Size size = member.GetCustomAttribute<ES_Size>();
 
